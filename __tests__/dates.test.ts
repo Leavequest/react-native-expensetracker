@@ -3,6 +3,8 @@ import {
   formatDateReadable,
   formatMonthName,
   getCurrentMonthKey,
+  getMonthKey,
+  isDateInMonth,
 } from '../src/utils/dates';
 
 describe('date utilities', () => {
@@ -29,6 +31,15 @@ describe('date utilities', () => {
   it('returns current month key in YYYY-MM format', () => {
     const key = getCurrentMonthKey();
     expect(key).toMatch(/^\d{4}-\d{2}$/);
+  });
+
+  it('uses local time when checking which month a date belongs to', () => {
+    // Midnight local time on the 1st: the UTC ISO string may still say the previous month
+    const firstOfMonthLocal = new Date(2026, 9, 1, 0, 30);
+    expect(getMonthKey(firstOfMonthLocal.toISOString())).toBe('2026-10');
+    expect(isDateInMonth(firstOfMonthLocal.toISOString(), '2026-10')).toBe(true);
+    expect(isDateInMonth(firstOfMonthLocal.toISOString(), '2026-09')).toBe(false);
+    expect(isDateInMonth('not a date', '2026-10')).toBe(false);
   });
 
   it('formats month name from YYYY-MM key', () => {

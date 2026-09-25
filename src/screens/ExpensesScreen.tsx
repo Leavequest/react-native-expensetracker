@@ -5,9 +5,9 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ScrollView,
+  Alert,
 } from 'react-native';
-import { Header } from '../components/common';
+import { Chip, ChipRow, Header } from '../components/common';
 import {
   BudgetOverviewCard,
   ExpenseItemRow,
@@ -15,7 +15,7 @@ import {
 } from '../components/expenses';
 import { EXPENSE_CATEGORIES, THEME } from '../constants';
 import { useExpense } from '../context';
-import { ExpenseCategory } from '../types';
+import { Expense, ExpenseCategory } from '../types';
 
 export const ExpensesScreen: React.FC = () => {
   const { expenses, deleteExpense } = useExpense();
@@ -32,6 +32,21 @@ export const ExpensesScreen: React.FC = () => {
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
   }, [expenses, selectedCategory]);
+
+  const categoryCounts = useMemo(() => {
+    const counts: Partial<Record<ExpenseCategory, number>> = {};
+    expenses.forEach(e => {
+      counts[e.category] = (counts[e.category] || 0) + 1;
+    });
+    return counts;
+  }, [expenses]);
+
+  const handleDeleteExpense = (expense: Expense) => {
+    Alert.alert('Delete expense?', `"${expense.title}" will be permanently removed.`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: () => deleteExpense(expense.id) },
+    ]);
+  };
 
   return (
     <View style={styles.container}>
@@ -51,67 +66,36 @@ export const ExpensesScreen: React.FC = () => {
             {/* Category Filter Chips */}
             <View style={styles.filterSection}>
               <Text style={styles.sectionTitle}>Recent Transactions</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.filterRow}
-              >
-                <TouchableOpacity
-                  activeOpacity={0.7}
+              <ChipRow contentContainerStyle={styles.filterRow}>
+                <Chip
+                  label={`All (${expenses.length})`}
+                  selected={selectedCategory === 'All'}
                   onPress={() => setSelectedCategory('All')}
-                  style={[
-                    styles.filterChip,
-                    selectedCategory === 'All' && styles.filterChipActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.filterChipText,
-                      selectedCategory === 'All' && styles.filterChipTextActive,
-                    ]}
-                  >
-                    All ({expenses.length})
-                  </Text>
-                </TouchableOpacity>
+                />
 
                 {EXPENSE_CATEGORIES.map(cat => {
-                  const count = expenses.filter(e => e.category === cat.name).length;
+                  const count = categoryCounts[cat.name] || 0;
                   if (count === 0 && selectedCategory !== cat.name) return null;
-                  const isActive = selectedCategory === cat.name;
 
                   return (
-                    <TouchableOpacity
+                    <Chip
                       key={cat.name}
-                      activeOpacity={0.7}
+                      label={`${cat.name} (${count})`}
+                      icon={cat.icon}
+                      selected={selectedCategory === cat.name}
+                      selectedColor={cat.color}
                       onPress={() => setSelectedCategory(cat.name)}
-                      style={[
-                        styles.filterChip,
-                        isActive && {
-                          backgroundColor: cat.color,
-                          borderColor: cat.color,
-                        },
-                      ]}
-                    >
-                      <Text style={styles.filterChipIcon}>{cat.icon}</Text>
-                      <Text
-                        style={[
-                          styles.filterChipText,
-                          isActive && styles.filterChipTextActive,
-                        ]}
-                      >
-                        {cat.name} ({count})
-                      </Text>
-                    </TouchableOpacity>
+                    />
                   );
                 })}
-              </ScrollView>
+              </ChipRow>
             </View>
           </>
         }
         renderItem={({ item }) => (
           <ExpenseItemRow
             expense={item}
-            onDelete={deleteExpense}
+            onDelete={handleDeleteExpense}
           />
         )}
         ListEmptyComponent={
@@ -163,34 +147,7 @@ const styles = StyleSheet.create({
   },
   filterRow: {
     paddingHorizontal: THEME.spacing.lg,
-    gap: 8,
     paddingBottom: THEME.spacing.sm,
-  },
-  filterChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: THEME.borderRadius.full,
-    borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
-    backgroundColor: THEME.colors.surface,
-  },
-  filterChipActive: {
-    backgroundColor: THEME.colors.primary,
-    borderColor: THEME.colors.primary,
-  },
-  filterChipIcon: {
-    marginRight: 6,
-    fontSize: 12,
-  },
-  filterChipText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: THEME.colors.textSecondary,
-  },
-  filterChipTextActive: {
-    color: '#FFFFFF',
   },
   emptyContainer: {
     alignItems: 'center',

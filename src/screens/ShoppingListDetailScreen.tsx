@@ -1,10 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
+  BackHandler,
 } from 'react-native';
 import { GroceryAisle } from '../types';
 import { GROCERY_AISLES, THEME } from '../constants';
@@ -54,6 +56,21 @@ export const ShoppingListDetailScreen: React.FC<ShoppingListDetailScreenProps> =
     return groups;
   }, [currentList]);
 
+  // Android hardware back returns to the lists instead of closing the app
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      onBack();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [onBack]);
+
+  useEffect(() => {
+    if (!tripFinishedBanner) return;
+    const timer = setTimeout(() => setTripFinishedBanner(null), 5000);
+    return () => clearTimeout(timer);
+  }, [tripFinishedBanner]);
+
   if (!currentList) {
     return (
       <View style={styles.notFoundContainer}>
@@ -78,11 +95,16 @@ export const ShoppingListDetailScreen: React.FC<ShoppingListDetailScreenProps> =
 
   const handleFinishTrip = () => {
     const result = finishShoppingTrip(currentList.id);
-    if (result) {
-      const msg = `Recorded expense of ${formatAmount(result.totalAmount)} at ${currentList.storeName} in your Expenses!`;
-      setTripFinishedBanner(msg);
-      setTimeout(() => setTripFinishedBanner(null), 5000);
+    if (!result) {
+      Alert.alert(
+        'Nothing to record',
+        'Add an estimated price to your items so the trip can be logged as an expense.'
+      );
+      return;
     }
+    setTripFinishedBanner(
+      `Recorded expense of ${formatAmount(result.totalAmount)} at ${currentList.storeName} in your Expenses!`
+    );
   };
 
   return (

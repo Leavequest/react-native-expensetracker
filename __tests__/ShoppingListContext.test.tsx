@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
-import { UserProvider } from '../src/context/UserContext';
+import { UserProvider, useUser } from '../src/context/UserContext';
+import { useRemoveHouseholdMember } from '../src/context/useRemoveHouseholdMember';
 import { ExpenseProvider, useExpense } from '../src/context/ExpenseContext';
 import {
   ShoppingListProvider,
@@ -112,5 +113,117 @@ describe('ShoppingListContext', () => {
     expect(captured!.expense.expenses.length).toBe(initialExpensesCount + 1);
     expect(captured!.expense.expenses[0].category).toBe('Groceries');
     expect(captured!.expense.expenses[0].title).toContain(targetList.storeName);
+  });
+});
+
+describe('ShoppingListContext finishShoppingTrip', () => {
+  it('does not record an expense when no item has a price', async () => {
+    let captured:
+      | {
+          shopping: ReturnType<typeof useShoppingList>;
+          expense: ReturnType<typeof useExpense>;
+        }
+      | undefined;
+
+    await ReactTestRenderer.act(() => {
+      ReactTestRenderer.create(
+        <UserProvider>
+          <ExpenseProvider>
+            <ShoppingListProvider>
+              <TestShoppingConsumer onState={s => (captured = s)} />
+            </ShoppingListProvider>
+          </ExpenseProvider>
+        </UserProvider>
+      );
+    });
+
+    let listId = '';
+    await ReactTestRenderer.act(() => {
+      listId = captured!.shopping.createList('Unpriced', 'Aldi').id;
+    });
+    await ReactTestRenderer.act(() => {
+      captured!.shopping.addItem(listId, {
+        name: 'Apples',
+        quantity: '1 kg',
+        aisle: 'Fresh Produce',
+        addedByUserId: 'u1',
+      });
+    });
+
+    let result: ReturnType<ReturnType<typeof useShoppingList>['finishShoppingTrip']> =
+      undefined as never;
+    await ReactTestRenderer.act(() => {
+      result = captured!.shopping.finishShoppingTrip(listId);
+    });
+
+    expect(result).toBeNull();
+    expect(captured!.expense.expenses.length).toBe(0);
+  });
+});
+
+describe('useRemoveHouseholdMember', () => {
+  it('removes the member from list collaborators and unassigns their items', async () => {
+    let shopping: ReturnType<typeof useShoppingList> | undefined;
+    let user: ReturnType<typeof useUser> | undefined;
+    let removeMember: ReturnType<typeof useRemoveHouseholdMember> | undefined;
+
+    const Consumer = () => {
+      shopping = useShoppingList();
+      user = useUser();
+      removeMember = useRemoveHouseholdMember();
+      return null;
+    };
+
+    await ReactTestRenderer.act(() => {
+      ReactTestRenderer.create(
+        <UserProvider>
+          <ExpenseProvider>
+            <ShoppingListProvider>
+              <Consumer />
+            </ShoppingListProvider>
+          </ExpenseProvider>
+        </UserProvider>
+      );
+    });
+
+    let memberId = '';
+    await ReactTestRenderer.act(() => {
+      memberId = user!.addUser('Giulia').id;
+    });
+    await ReactTestRenderer.act(() => {
+      user!.setActiveUser(memberId);
+    });
+
+    let listId = '';
+    await ReactTestRenderer.act(() => {
+      listId = shopping!.createList('Shared', 'Coop').id;
+    });
+    await ReactTestRenderer.act(() => {
+      shopping!.addItem(listId, {
+        name: 'Bread',
+        quantity: '1',
+        aisle: 'Bakery',
+        assignedToUserId: memberId,
+        addedByUserId: memberId,
+      });
+    });
+
+    let removed = false;
+    await ReactTestRenderer.act(() => {
+      removed = removeMember!(memberId);
+    });
+
+    const list = shopping!.lists.find(l => l.id === listId)!;
+    expect(removed).toBe(true);
+    expect(user!.householdUsers.some(u => u.id === memberId)).toBe(false);
+    expect(list.collaboratorIds).not.toContain(memberId);
+    expect(list.items[0].assignedToUserId).toBeUndefined();
+
+    // The last remaining member can't be removed
+    await ReactTestRenderer.act(() => {
+      removed = removeMember!(user!.activeUser.id);
+    });
+    expect(removed).toBe(false);
+    expect(user!.householdUsers.length).toBe(1);
   });
 });

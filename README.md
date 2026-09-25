@@ -50,3 +50,5 @@ npm run lint
 # TypeScript typecheck
 npx tsc --noEmit
 ```
+
+### DISCLAIMER: AI tools were used for the developement of this app

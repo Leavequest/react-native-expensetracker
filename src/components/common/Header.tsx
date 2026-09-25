@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { THEME } from '../../constants';
+import { CURRENCIES, THEME } from '../../constants';
 import { useUser } from '../../context';
 import { CurrencyCode } from '../../types';
+import { Avatar } from './Avatar';
 
 interface HeaderProps {
   title: string;
@@ -26,8 +27,8 @@ export const Header: React.FC<HeaderProps> = ({
       onCurrencyPress();
       return;
     }
-    // Cycle EUR -> USD -> GBP -> EUR
-    const sequence: CurrencyCode[] = ['EUR', 'USD', 'GBP'];
+    // Cycle through all supported currencies
+    const sequence = Object.keys(CURRENCIES) as CurrencyCode[];
     const nextIndex = (sequence.indexOf(currency) + 1) % sequence.length;
     setCurrency(sequence[nextIndex]);
   };
@@ -46,18 +47,12 @@ export const Header: React.FC<HeaderProps> = ({
             onPress={handleCycleCurrency}
             style={styles.currencyPill}
           >
-            <Text style={styles.currencySymbol}>
-              {currency === 'EUR' ? '€' : currency === 'USD' ? '$' : '£'}
-            </Text>
+            <Text style={styles.currencySymbol}>{CURRENCIES[currency].symbol}</Text>
             <Text style={styles.currencyText}>{currency}</Text>
           </TouchableOpacity>
         ) : null}
 
-        <View
-          style={[styles.avatarCircle, { backgroundColor: activeUser.avatarColor }]}
-        >
-          <Text style={styles.avatarText}>{activeUser.initials}</Text>
-        </View>
+        <Avatar user={activeUser} size={32} style={styles.avatar} />
 
         {rightAction ? <View style={styles.actionWrapper}>{rightAction}</View> : null}
       </View>
@@ -114,18 +109,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: THEME.colors.primaryDark,
   },
-  avatarCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+  avatar: {
     marginLeft: 4,
-  },
-  avatarText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
   },
   actionWrapper: {
     marginLeft: 4,

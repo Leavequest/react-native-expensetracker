@@ -8,7 +8,7 @@ import { Badge } from '../common';
 
 interface ExpenseItemRowProps {
   expense: Expense;
-  onDelete?: (id: string) => void;
+  onDelete?: (expense: Expense) => void;
   onPress?: (expense: Expense) => void;
 }
 
@@ -70,9 +70,10 @@ export const ExpenseItemRow: React.FC<ExpenseItemRowProps> = ({
           {onDelete ? (
             <TouchableOpacity
               activeOpacity={0.6}
-              onPress={() => onDelete(expense.id)}
+              onPress={() => onDelete(expense)}
               style={styles.deleteButton}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityLabel={`Delete ${expense.title}`}
             >
               <Text style={styles.deleteIcon}>✕</Text>
             </TouchableOpacity>

@@ -1,7 +1,16 @@
-import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  ReactNode,
+} from 'react';
 import { Expense, ExpenseCategory, MonthlyBudget } from '../types';
 import { INITIAL_BUDGET, INITIAL_EXPENSES } from '../constants';
-import { getCurrentMonthKey } from '../utils';
+import { generateId, getCurrentMonthKey, isDateInMonth } from '../utils';
+import { PersistedExpenseState, saveSlice } from '../storage/persistence';
 
 export interface CategorySpending {
   category: ExpenseCategory;
@@ -12,6 +21,7 @@ export interface CategorySpending {
 
 interface ExpenseContextType {
   expenses: Expense[];
+  currentMonthExpenses: Expense[];
   budget: MonthlyBudget;
   totalSpentThisMonth: number;
   budgetRemaining: number;
@@ -27,118 +37,125 @@ interface ExpenseContextType {
 
 const ExpenseContext = createContext<ExpenseContextType | undefined>(undefined);
 
-export const ExpenseProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [expenses, setExpenses] = useState<Expense[]>(INITIAL_EXPENSES);
-  const [budget, setBudget] = useState<MonthlyBudget>(INITIAL_BUDGET);
+interface ExpenseProviderProps {
+  children: ReactNode;
+  /** Previously saved state to start from (defaults are used when omitted) */
+  initialState?: PersistedExpenseState;
+}
+
+export const ExpenseProvider: React.FC<ExpenseProviderProps> = ({ children, initialState }) => {
+  const [expenses, setExpenses] = useState<Expense[]>(
+    initialState?.expenses ?? INITIAL_EXPENSES
+  );
+  const [budget, setBudget] = useState<MonthlyBudget>(initialState?.budget ?? INITIAL_BUDGET);
+
+  useEffect(() => {
+    saveSlice('expenses', { expenses, budget });
+  }, [expenses, budget]);
 
   const currentMonthKey = getCurrentMonthKey();
 
-  const totalSpentThisMonth = useMemo(() => {
-    return expenses.reduce((sum, exp) => {
-      // Filter expenses for current month
-      if (exp.date && exp.date.startsWith(currentMonthKey)) {
-        return sum + exp.amount;
-      }
-      return sum;
-    }, 0);
-  }, [expenses, currentMonthKey]);
+  const currentMonthExpenses = useMemo(
+    () => expenses.filter(exp => isDateInMonth(exp.date, currentMonthKey)),
+    [expenses, currentMonthKey]
+  );
 
-  const budgetRemaining = useMemo(() => {
-    return Math.max(0, budget.totalLimit - totalSpentThisMonth);
-  }, [budget.totalLimit, totalSpentThisMonth]);
+  const totalSpentThisMonth = useMemo(
+    () => currentMonthExpenses.reduce((sum, exp) => sum + exp.amount, 0),
+    [currentMonthExpenses]
+  );
 
-  const budgetUsagePercent = useMemo(() => {
-    if (budget.totalLimit <= 0) return 0;
-    return Math.min(100, Math.round((totalSpentThisMonth / budget.totalLimit) * 100));
-  }, [budget.totalLimit, totalSpentThisMonth]);
+  const budgetRemaining = Math.max(0, budget.totalLimit - totalSpentThisMonth);
+
+  const budgetUsagePercent =
+    budget.totalLimit > 0
+      ? Math.min(100, Math.round((totalSpentThisMonth / budget.totalLimit) * 100))
+      : 0;
 
   const categoryBreakdown = useMemo(() => {
-    const categoryTotals: Record<string, number> = {};
+    const categoryTotals: Partial<Record<ExpenseCategory, number>> = {};
 
-    expenses.forEach(exp => {
-      if (exp.date && exp.date.startsWith(currentMonthKey)) {
-        categoryTotals[exp.category] = (categoryTotals[exp.category] || 0) + exp.amount;
-      }
+    currentMonthExpenses.forEach(exp => {
+      categoryTotals[exp.category] = (categoryTotals[exp.category] || 0) + exp.amount;
     });
 
-    const breakdown: CategorySpending[] = Object.entries(categoryTotals).map(
-      ([cat, spent]) => {
-        const category = cat as ExpenseCategory;
-        const limit = budget.categoryLimits[category];
-        const percentage = totalSpentThisMonth > 0 ? (spent / totalSpentThisMonth) * 100 : 0;
-        return {
-          category,
-          spent,
-          limit,
-          percentage: Math.round(percentage),
-        };
-      }
-    );
+    const breakdown: CategorySpending[] = (
+      Object.entries(categoryTotals) as [ExpenseCategory, number][]
+    ).map(([category, spent]) => ({
+      category,
+      spent,
+      limit: budget.categoryLimits[category],
+      percentage:
+        totalSpentThisMonth > 0 ? Math.round((spent / totalSpentThisMonth) * 100) : 0,
+    }));
 
     return breakdown.sort((a, b) => b.spent - a.spent);
-  }, [expenses, budget.categoryLimits, totalSpentThisMonth, currentMonthKey]);
+  }, [currentMonthExpenses, budget.categoryLimits, totalSpentThisMonth]);
 
-  const addExpense = (newExpenseData: Omit<Expense, 'id'>): Expense => {
-    const newExpense: Expense = {
-      ...newExpenseData,
-      id: `exp-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-    };
+  const addExpense = useCallback((newExpenseData: Omit<Expense, 'id'>): Expense => {
+    const newExpense: Expense = { ...newExpenseData, id: generateId('exp') };
     setExpenses(prev => [newExpense, ...prev]);
     return newExpense;
-  };
+  }, []);
 
-  const updateExpense = (id: string, updates: Partial<Expense>) => {
-    setExpenses(prev =>
-      prev.map(exp => (exp.id === id ? { ...exp, ...updates } : exp))
-    );
-  };
+  const updateExpense = useCallback((id: string, updates: Partial<Expense>) => {
+    setExpenses(prev => prev.map(exp => (exp.id === id ? { ...exp, ...updates } : exp)));
+  }, []);
 
-  const deleteExpense = (id: string) => {
+  const deleteExpense = useCallback((id: string) => {
     setExpenses(prev => prev.filter(exp => exp.id !== id));
-  };
+  }, []);
 
-  const setTotalBudget = (amount: number) => {
+  const setTotalBudget = useCallback((amount: number) => {
+    setBudget(prev => ({ ...prev, totalLimit: amount }));
+  }, []);
+
+  const setCategoryBudget = useCallback((category: ExpenseCategory, limit: number) => {
     setBudget(prev => ({
       ...prev,
-      totalLimit: amount,
+      categoryLimits: { ...prev.categoryLimits, [category]: limit },
     }));
-  };
+  }, []);
 
-  const setCategoryBudget = (category: ExpenseCategory, limit: number) => {
-    setBudget(prev => ({
-      ...prev,
-      categoryLimits: {
-        ...prev.categoryLimits,
-        [category]: limit,
-      },
-    }));
-  };
-
-  const resetExpensesToDefault = () => {
+  const resetExpensesToDefault = useCallback(() => {
     setExpenses(INITIAL_EXPENSES);
     setBudget(INITIAL_BUDGET);
-  };
+  }, []);
 
-  return (
-    <ExpenseContext.Provider
-      value={{
-        expenses,
-        budget,
-        totalSpentThisMonth,
-        budgetRemaining,
-        budgetUsagePercent,
-        categoryBreakdown,
-        addExpense,
-        updateExpense,
-        deleteExpense,
-        setTotalBudget,
-        setCategoryBudget,
-        resetExpensesToDefault,
-      }}
-    >
-      {children}
-    </ExpenseContext.Provider>
+  const value = useMemo(
+    () => ({
+      expenses,
+      currentMonthExpenses,
+      budget,
+      totalSpentThisMonth,
+      budgetRemaining,
+      budgetUsagePercent,
+      categoryBreakdown,
+      addExpense,
+      updateExpense,
+      deleteExpense,
+      setTotalBudget,
+      setCategoryBudget,
+      resetExpensesToDefault,
+    }),
+    [
+      expenses,
+      currentMonthExpenses,
+      budget,
+      totalSpentThisMonth,
+      budgetRemaining,
+      budgetUsagePercent,
+      categoryBreakdown,
+      addExpense,
+      updateExpense,
+      deleteExpense,
+      setTotalBudget,
+      setCategoryBudget,
+      resetExpensesToDefault,
+    ]
   );
+
+  return <ExpenseContext.Provider value={value}>{children}</ExpenseContext.Provider>;
 };
 
 export const useExpense = (): ExpenseContextType => {

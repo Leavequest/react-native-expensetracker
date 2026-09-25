@@ -3,12 +3,12 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ShoppingList } from '../../types';
 import { THEME } from '../../constants';
 import { useUser } from '../../context';
-import { Badge, ProgressBar } from '../common';
+import { Avatar, Badge, ProgressBar } from '../common';
 
 interface ShoppingListCardProps {
   list: ShoppingList;
   onPress: (list: ShoppingList) => void;
-  onDelete?: (id: string) => void;
+  onDelete?: (list: ShoppingList) => void;
 }
 
 export const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
@@ -79,16 +79,12 @@ export const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
       <View style={styles.bottomRow}>
         <View style={styles.collaboratorsContainer}>
           {collaborators.map((user, idx) => (
-            <View
+            <Avatar
               key={user.id}
-              style={[
-                styles.avatarCircle,
-                idx > 0 && styles.avatarOverlap,
-                { backgroundColor: user.avatarColor },
-              ]}
-            >
-              <Text style={styles.avatarText}>{user.initials}</Text>
-            </View>
+              user={user}
+              size={24}
+              style={idx > 0 ? { ...styles.avatarBorder, ...styles.avatarOverlap } : styles.avatarBorder}
+            />
           ))}
           <Text style={styles.collaboratorsLabel}>
             {collaborators.length}{' '}
@@ -99,9 +95,10 @@ export const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
         {onDelete ? (
           <TouchableOpacity
             activeOpacity={0.6}
-            onPress={() => onDelete(list.id)}
+            onPress={() => onDelete(list)}
             style={styles.deleteBtn}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityLabel={`Delete ${list.name}`}
           >
             <Text style={styles.deleteText}>Delete</Text>
           </TouchableOpacity>
@@ -189,22 +186,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  avatarCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+  avatarBorder: {
     borderWidth: 1.5,
-    borderColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: THEME.colors.surface,
   },
   avatarOverlap: {
     marginLeft: -8,
-  },
-  avatarText: {
-    color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '700',
   },
   collaboratorsLabel: {
     ...THEME.typography.caption,

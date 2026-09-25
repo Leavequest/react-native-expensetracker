@@ -1,21 +1,18 @@
 import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
-import { CustomModal, Button } from '../common';
-import {
-  EXPENSE_CATEGORIES,
-  PAYMENT_METHODS,
-  THEME,
-} from '../../constants';
+  Button,
+  Chip,
+  ChipRow,
+  CustomModal,
+  ErrorBanner,
+  FormInput,
+  FormLabel,
+} from '../common';
+import { EXPENSE_CATEGORIES, PAYMENT_METHODS, THEME } from '../../constants';
 import { ExpenseCategory, PaymentMethod } from '../../types';
 import { useExpense, useUser } from '../../context';
-import { parseCurrencyInput } from '../../utils';
+import { getCurrencySymbol, parseCurrencyInput } from '../../utils';
 
 interface ExpenseFormModalProps {
   visible: boolean;
@@ -38,7 +35,7 @@ export const ExpenseFormModal: React.FC<ExpenseFormModalProps> = ({
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
 
-  const currencySymbol = currency === 'EUR' ? '€' : currency === 'USD' ? '$' : '£';
+  const currencySymbol = getCurrencySymbol(currency);
 
   const resetForm = () => {
     setTitle('');
@@ -47,6 +44,11 @@ export const ExpenseFormModal: React.FC<ExpenseFormModalProps> = ({
     setSelectedPaymentMethod('Debit Card');
     setNotes('');
     setError('');
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
   };
 
   const handleSubmit = () => {
@@ -71,29 +73,22 @@ export const ExpenseFormModal: React.FC<ExpenseFormModalProps> = ({
       notes: notes.trim() || undefined,
     });
 
-    resetForm();
-    onClose();
+    handleClose();
   };
 
   return (
     <CustomModal
       visible={visible}
-      onClose={() => {
-        resetForm();
-        onClose();
-      }}
+      onClose={handleClose}
       title="Add New Expense"
       subtitle="Log a transaction in your monthly budget"
     >
       <ScrollView showsVerticalScrollIndicator={false} style={styles.formContainer}>
-        {error ? <Text style={styles.errorBanner}>{error}</Text> : null}
+        <ErrorBanner message={error} />
 
-        {/* Title */}
-        <Text style={styles.label}>Description / Store Name</Text>
-        <TextInput
-          style={styles.input}
+        <FormLabel>Description / Store Name</FormLabel>
+        <FormInput
           placeholder="e.g., Carrefour, Metro Pass, Dinner"
-          placeholderTextColor={THEME.colors.textMuted}
           value={title}
           onChangeText={t => {
             setTitle(t);
@@ -101,14 +96,12 @@ export const ExpenseFormModal: React.FC<ExpenseFormModalProps> = ({
           }}
         />
 
-        {/* Amount */}
-        <Text style={styles.label}>Amount ({currencySymbol})</Text>
+        <FormLabel>Amount ({currencySymbol})</FormLabel>
         <View style={styles.amountInputRow}>
           <Text style={styles.currencyPrefix}>{currencySymbol}</Text>
-          <TextInput
-            style={[styles.input, styles.amountInput]}
+          <FormInput
+            style={styles.amountInput}
             placeholder="0.00"
-            placeholderTextColor={THEME.colors.textMuted}
             keyboardType="decimal-pad"
             value={amountInput}
             onChangeText={a => {
@@ -118,80 +111,36 @@ export const ExpenseFormModal: React.FC<ExpenseFormModalProps> = ({
           />
         </View>
 
-        {/* Category Picker */}
-        <Text style={styles.label}>Category</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipsRow}
-        >
-          {EXPENSE_CATEGORIES.map(cat => {
-            const isSelected = selectedCategory === cat.name;
-            return (
-              <TouchableOpacity
-                key={cat.name}
-                activeOpacity={0.7}
-                onPress={() => setSelectedCategory(cat.name)}
-                style={[
-                  styles.chip,
-                  isSelected && {
-                    backgroundColor: cat.color,
-                    borderColor: cat.color,
-                  },
-                ]}
-              >
-                <Text style={styles.chipIcon}>{cat.icon}</Text>
-                <Text
-                  style={[
-                    styles.chipText,
-                    isSelected && styles.chipTextSelected,
-                  ]}
-                >
-                  {cat.name}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+        <FormLabel>Category</FormLabel>
+        <ChipRow>
+          {EXPENSE_CATEGORIES.map(cat => (
+            <Chip
+              key={cat.name}
+              label={cat.name}
+              icon={cat.icon}
+              selected={selectedCategory === cat.name}
+              selectedColor={cat.color}
+              onPress={() => setSelectedCategory(cat.name)}
+            />
+          ))}
+        </ChipRow>
 
-        {/* Payment Method */}
-        <Text style={styles.label}>Payment Method</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipsRow}
-        >
-          {PAYMENT_METHODS.map(pm => {
-            const isSelected = selectedPaymentMethod === pm;
-            return (
-              <TouchableOpacity
-                key={pm}
-                activeOpacity={0.7}
-                onPress={() => setSelectedPaymentMethod(pm)}
-                style={[
-                  styles.chip,
-                  isSelected && styles.chipSelectedPrimary,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.chipText,
-                    isSelected && styles.chipTextSelected,
-                  ]}
-                >
-                  {pm}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+        <FormLabel>Payment Method</FormLabel>
+        <ChipRow>
+          {PAYMENT_METHODS.map(pm => (
+            <Chip
+              key={pm}
+              label={pm}
+              selected={selectedPaymentMethod === pm}
+              onPress={() => setSelectedPaymentMethod(pm)}
+            />
+          ))}
+        </ChipRow>
 
-        {/* Notes */}
-        <Text style={styles.label}>Notes (Optional)</Text>
-        <TextInput
-          style={[styles.input, styles.notesInput]}
+        <FormLabel>Notes (Optional)</FormLabel>
+        <FormInput
+          style={styles.notesInput}
           placeholder="Add optional notes..."
-          placeholderTextColor={THEME.colors.textMuted}
           value={notes}
           onChangeText={setNotes}
           multiline
@@ -214,32 +163,6 @@ const styles = StyleSheet.create({
   formContainer: {
     maxHeight: 500,
   },
-  errorBanner: {
-    backgroundColor: THEME.colors.dangerLight,
-    color: THEME.colors.danger,
-    padding: THEME.spacing.sm,
-    borderRadius: THEME.borderRadius.sm,
-    marginBottom: THEME.spacing.md,
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  label: {
-    ...THEME.typography.captionBold,
-    color: THEME.colors.textSecondary,
-    marginBottom: 6,
-    marginTop: THEME.spacing.sm,
-    textTransform: 'uppercase',
-  },
-  input: {
-    backgroundColor: THEME.colors.surfaceSubtle,
-    borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
-    borderRadius: THEME.borderRadius.md,
-    paddingHorizontal: THEME.spacing.md,
-    paddingVertical: THEME.spacing.sm + 2,
-    fontSize: 15,
-    color: THEME.colors.textPrimary,
-  },
   amountInputRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -256,38 +179,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingLeft: 34,
     fontSize: 18,
-    fontWeight: '700',
-  },
-  chipsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingVertical: 4,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: THEME.borderRadius.full,
-    borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
-    backgroundColor: THEME.colors.surfaceSubtle,
-  },
-  chipSelectedPrimary: {
-    backgroundColor: THEME.colors.primary,
-    borderColor: THEME.colors.primary,
-  },
-  chipIcon: {
-    marginRight: 6,
-    fontSize: 14,
-  },
-  chipText: {
-    fontSize: 13,
-    color: THEME.colors.textPrimary,
-    fontWeight: '500',
-  },
-  chipTextSelected: {
-    color: '#FFFFFF',
     fontWeight: '700',
   },
   notesInput: {

@@ -47,6 +47,13 @@ describe('currency utilities', () => {
       expect(parseCurrencyInput('£ 99.00')).toBe(99);
     });
 
+    it('parses European thousands separators (e.g., 1.234,56)', () => {
+      expect(parseCurrencyInput('1.234,56')).toBe(1234.56);
+      expect(parseCurrencyInput('€ 1.250,00')).toBe(1250);
+      expect(parseCurrencyInput('1.234.567')).toBe(1234567);
+      expect(parseCurrencyInput('1,234,567')).toBe(1234567);
+    });
+
     it('returns 0 for invalid inputs', () => {
       expect(parseCurrencyInput('')).toBe(0);
       expect(parseCurrencyInput('abc')).toBe(0);

@@ -7,16 +7,11 @@ import { useExpense, useUser } from '../context';
 import { formatMonthName, getCurrentMonthKey } from '../utils';
 
 export const AnalyticsScreen: React.FC = () => {
-  const { expenses, categoryBreakdown, totalSpentThisMonth, budget } =
+  const { currentMonthExpenses, categoryBreakdown, totalSpentThisMonth, budget } =
     useExpense();
   const { formatAmount, currency } = useUser();
 
   const currentMonth = formatMonthName(getCurrentMonthKey());
-
-  const currentMonthExpenses = useMemo(() => {
-    const key = getCurrentMonthKey();
-    return expenses.filter(e => e.date && e.date.startsWith(key));
-  }, [expenses]);
 
   const groceriesSpent = useMemo(() => {
     return currentMonthExpenses
@@ -73,7 +68,7 @@ export const AnalyticsScreen: React.FC = () => {
             <View style={styles.groceriesHeaderText}>
               <Text style={styles.groceriesTitle}>Groceries & Supermarkets</Text>
               <Text style={styles.groceriesSubtitle}>
-                {groceriesPercent}% of total monthly budget spent
+                {groceriesPercent}% of this month's spending
               </Text>
             </View>
           </View>

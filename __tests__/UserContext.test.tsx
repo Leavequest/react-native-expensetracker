@@ -64,6 +64,25 @@ describe('UserContext', () => {
     expect(captured!.householdUsers.find(u => u.id === newUserId)).toBeUndefined();
   });
 
+  it('never deletes the last remaining household member', async () => {
+    let captured: ReturnType<typeof useUser> | undefined;
+
+    await ReactTestRenderer.act(() => {
+      ReactTestRenderer.create(
+        <UserProvider>
+          <TestUserConsumer onState={s => (captured = s)} />
+        </UserProvider>
+      );
+    });
+
+    await ReactTestRenderer.act(() => {
+      captured!.deleteUser('u1');
+    });
+
+    expect(captured!.householdUsers.length).toBe(1);
+    expect(captured!.activeUser.id).toBe('u1');
+  });
+
   it('switches active user automatically when active user is deleted', async () => {
     let captured: ReturnType<typeof useUser> | undefined;
 

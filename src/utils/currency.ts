@@ -28,21 +28,40 @@ export function formatCurrency(
 }
 
 /**
+ * Returns the display symbol for a currency code (e.g. "EUR" -> "€").
+ */
+export function getCurrencySymbol(currencyCode: CurrencyCode): string {
+  return (CURRENCIES[currencyCode] || CURRENCIES[DEFAULT_CURRENCY]).symbol;
+}
+
+/**
  * Parses user input string into a valid float number.
  * Handles both comma and period as decimal separators, stripping currency symbols.
+ * Examples: "48,50" -> 48.5, "1,200.50" -> 1200.5, "1.234,56" -> 1234.56
  */
 export function parseCurrencyInput(input: string): number {
   if (!input) return 0;
   // Strip any characters except digits, commas, periods, and minus
-  let sanitized = input.replace(/[^0-9.,-]/g, '').trim();
+  let sanitized = input.replace(/[^0-9.,-]/g, '');
   if (!sanitized) return 0;
 
-  // If there's a comma followed by 1 or 2 digits at the end (e.g. "48,50"), treat comma as decimal
-  if (/,\d{1,2}$/.test(sanitized) && !sanitized.includes('.')) {
-    sanitized = sanitized.replace(',', '.');
-  } else {
-    // Otherwise remove commas as thousand separators
-    sanitized = sanitized.replace(/,/g, '');
+  const lastComma = sanitized.lastIndexOf(',');
+  const lastDot = sanitized.lastIndexOf('.');
+
+  if (lastComma !== -1 && lastDot !== -1) {
+    // Both separators present: whichever comes last is the decimal separator
+    sanitized =
+      lastComma > lastDot
+        ? sanitized.replace(/\./g, '').replace(',', '.')
+        : sanitized.replace(/,/g, '');
+  } else if (lastComma !== -1) {
+    // Only commas: a single comma followed by 1-2 digits (e.g. "48,50") is decimal
+    sanitized = /^[^,]*,\d{1,2}$/.test(sanitized)
+      ? sanitized.replace(',', '.')
+      : sanitized.replace(/,/g, '');
+  } else if (sanitized.indexOf('.') !== lastDot) {
+    // Multiple dots (e.g. "1.234.567") can only be thousands separators
+    sanitized = sanitized.replace(/\./g, '');
   }
 
   const parsed = parseFloat(sanitized);

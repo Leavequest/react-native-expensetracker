@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ShoppingItem } from '../../types';
 import { GROCERY_AISLES, THEME } from '../../constants';
 import { useUser } from '../../context';
-import { Badge } from '../common';
+import { Avatar, Badge } from '../common';
 
 interface ShoppingItemRowProps {
   item: ShoppingItem;
@@ -78,16 +78,7 @@ export const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
 
           {assignedUser ? (
             <View style={styles.assigneeContainer}>
-              <View
-                style={[
-                  styles.assigneeAvatar,
-                  { backgroundColor: assignedUser.avatarColor },
-                ]}
-              >
-                <Text style={styles.assigneeText}>
-                  {assignedUser.initials}
-                </Text>
-              </View>
+              <Avatar user={assignedUser} size={16} />
               <Text style={styles.assigneeName}>{assignedUser.name}</Text>
             </View>
           ) : null}
@@ -195,18 +186,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-  },
-  assigneeAvatar: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  assigneeText: {
-    fontSize: 8,
-    fontWeight: '700',
-    color: '#FFFFFF',
   },
   assigneeName: {
     ...THEME.typography.caption,

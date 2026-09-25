@@ -1,4 +1,6 @@
 import { Expense, MonthlyBudget, ShoppingList, UserProfile } from '../types';
+// Imported directly (not via '../utils') to avoid a constants <-> utils import cycle
+import { getCurrentMonthKey } from '../utils/dates';
 
 export const INITIAL_USERS: UserProfile[] = [
   {
@@ -12,7 +14,7 @@ export const INITIAL_USERS: UserProfile[] = [
 ];
 
 export const INITIAL_BUDGET: MonthlyBudget = {
-  month: new Date().toISOString().slice(0, 7),
+  month: getCurrentMonthKey(),
   totalLimit: 0,
   categoryLimits: {},
 };

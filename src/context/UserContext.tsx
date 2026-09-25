@@ -1,7 +1,16 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  ReactNode,
+} from 'react';
 import { CurrencyCode, UserProfile } from '../types';
 import { DEFAULT_CURRENCY, INITIAL_USERS } from '../constants';
-import { formatCurrency } from '../utils';
+import { formatCurrency, generateId } from '../utils';
+import { PersistedUserState, saveSlice } from '../storage/persistence';
 
 interface UserContextType {
   activeUser: UserProfile;
@@ -15,98 +24,104 @@ interface UserContextType {
   formatAmount: (amount: number) => string;
 }
 
+const AVATAR_COLORS = ['#059669', '#8B5CF6', '#F59E0B', '#3B82F6', '#EC4899', '#10B981'];
+
+function getInitials(name: string): string {
+  return (
+    name
+      .trim()
+      .split(/\s+/)
+      .map(part => part[0] ?? '')
+      .join('')
+      .substring(0, 2)
+      .toUpperCase() || 'U'
+  );
+}
+
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [householdUsers, setHouseholdUsers] = useState<UserProfile[]>(INITIAL_USERS);
-  const [activeUserId, setActiveUserId] = useState<string>('u1');
-  const [currency, setCurrency] = useState<CurrencyCode>(DEFAULT_CURRENCY);
+interface UserProviderProps {
+  children: ReactNode;
+  /** Previously saved state to start from (defaults are used when omitted) */
+  initialState?: PersistedUserState;
+}
+
+export const UserProvider: React.FC<UserProviderProps> = ({ children, initialState }) => {
+  const [users, setUsers] = useState<UserProfile[]>(initialState?.users ?? INITIAL_USERS);
+  const [activeUserId, setActiveUserId] = useState<string>(
+    initialState?.activeUserId ?? INITIAL_USERS[0].id
+  );
+  const [currency, setCurrency] = useState<CurrencyCode>(
+    initialState?.currency ?? DEFAULT_CURRENCY
+  );
+
+  useEffect(() => {
+    saveSlice('user', { users, activeUserId, currency });
+  }, [users, activeUserId, currency]);
+
+  // Fall back to the first member if the active one no longer exists (e.g. was deleted)
+  const resolvedActiveId = users.some(u => u.id === activeUserId)
+    ? activeUserId
+    : users[0]?.id;
+
+  // isCurrentUser is derived from the active id so the two can never drift apart
+  const householdUsers = useMemo(
+    () => users.map(u => ({ ...u, isCurrentUser: u.id === resolvedActiveId })),
+    [users, resolvedActiveId]
+  );
 
   const activeUser =
-    householdUsers.find(u => u.id === activeUserId) ||
-    householdUsers[0] || {
-      id: 'u1',
-      name: 'You',
-      initials: 'ME',
-      avatarColor: '#059669',
-      email: 'user@example.com',
-      isCurrentUser: true,
-    };
+    householdUsers.find(u => u.isCurrentUser) ?? INITIAL_USERS[0];
 
-  const handleSetActiveUser = (userId: string) => {
-    setActiveUserId(userId);
-    setHouseholdUsers(prev =>
-      prev.map(u => ({
-        ...u,
-        isCurrentUser: u.id === userId,
-      }))
-    );
-  };
-
-  const addUser = (name: string, email?: string): UserProfile => {
-    const initials =
-      name
-        .split(' ')
-        .map(n => n[0])
-        .join('')
-        .substring(0, 2)
-        .toUpperCase() || 'U';
-    const colors = ['#059669', '#8B5CF6', '#F59E0B', '#3B82F6', '#EC4899', '#10B981'];
-    const avatarColor = colors[householdUsers.length % colors.length];
-    const newUser: UserProfile = {
-      id: `u-${Date.now()}`,
-      name: name.trim(),
-      initials,
-      avatarColor,
-      email: email?.trim() || `${name.trim().toLowerCase().replace(/\s+/g, '')}@example.com`,
-      isCurrentUser: false,
-    };
-    setHouseholdUsers(prev => [...prev, newUser]);
-    return newUser;
-  };
-
-  const updateUser = (id: string, updates: Partial<UserProfile>) => {
-    setHouseholdUsers(prev =>
-      prev.map(u => (u.id === id ? { ...u, ...updates } : u))
-    );
-  };
-
-  const deleteUser = (userId: string) => {
-    setHouseholdUsers(prev => {
-      const remaining = prev.filter(u => u.id !== userId);
-      if (activeUserId === userId && remaining.length > 0) {
-        const nextActiveId = remaining[0].id;
-        setActiveUserId(nextActiveId);
-        return remaining.map(u => ({
-          ...u,
-          isCurrentUser: u.id === nextActiveId,
-        }));
-      }
-      return remaining;
-    });
-  };
-
-  const formatAmount = (amount: number): string => {
-    return formatCurrency(amount, currency);
-  };
-
-  return (
-    <UserContext.Provider
-      value={{
-        activeUser,
-        householdUsers,
-        currency,
-        setCurrency,
-        setActiveUser: handleSetActiveUser,
-        addUser,
-        updateUser,
-        deleteUser,
-        formatAmount,
-      }}
-    >
-      {children}
-    </UserContext.Provider>
+  const addUser = useCallback(
+    (name: string, email?: string): UserProfile => {
+      const trimmedName = name.trim();
+      const newUser: UserProfile = {
+        id: generateId('u'),
+        name: trimmedName,
+        initials: getInitials(trimmedName),
+        avatarColor: AVATAR_COLORS[users.length % AVATAR_COLORS.length],
+        email:
+          email?.trim() ||
+          `${trimmedName.toLowerCase().replace(/\s+/g, '')}@example.com`,
+        isCurrentUser: false,
+      };
+      setUsers(prev => [...prev, newUser]);
+      return newUser;
+    },
+    [users.length]
   );
+
+  const updateUser = useCallback((id: string, updates: Partial<UserProfile>) => {
+    setUsers(prev => prev.map(u => (u.id === id ? { ...u, ...updates } : u)));
+  }, []);
+
+  const deleteUser = useCallback((userId: string) => {
+    // At least one household member must always exist
+    setUsers(prev => (prev.length <= 1 ? prev : prev.filter(u => u.id !== userId)));
+  }, []);
+
+  const formatAmount = useCallback(
+    (amount: number): string => formatCurrency(amount, currency),
+    [currency]
+  );
+
+  const value = useMemo(
+    () => ({
+      activeUser,
+      householdUsers,
+      currency,
+      setCurrency,
+      setActiveUser: setActiveUserId,
+      addUser,
+      updateUser,
+      deleteUser,
+      formatAmount,
+    }),
+    [activeUser, householdUsers, currency, addUser, updateUser, deleteUser, formatAmount]
+  );
+
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };
 
 export const useUser = (): UserContextType => {

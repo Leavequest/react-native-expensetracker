@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { CustomModal, Button } from '../common';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Share } from 'react-native';
+import { Avatar, CustomModal, Button } from '../common';
 import { ShoppingList } from '../../types';
 import { THEME } from '../../constants';
 import { useUser } from '../../context';
@@ -17,15 +17,15 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
   list,
 }) => {
   const { householdUsers } = useUser();
-  const [copied, setCopied] = useState(false);
 
   if (!list) return null;
 
-  const handleCopy = () => {
-    setCopied(true);
-    setTimeout(() => {
-      setCopied(false);
-    }, 2500);
+  const handleShareCode = () => {
+    Share.share({
+      message: `Join my "${list.name}" shopping list with the code: ${list.shareCode}`,
+    }).catch(() => {
+      // Share sheet dismissed or unavailable; nothing to do
+    });
   };
 
   const collaborators = householdUsers.filter(u =>
@@ -46,12 +46,10 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
           <Text style={styles.codeText}>{list.shareCode}</Text>
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={handleCopy}
-            style={[styles.copyBtn, copied && styles.copyBtnSuccess]}
+            onPress={handleShareCode}
+            style={styles.shareBtn}
           >
-            <Text style={[styles.copyBtnText, copied && styles.copyBtnTextSuccess]}>
-              {copied ? 'Copied! ✓' : 'Copy Code'}
-            </Text>
+            <Text style={styles.shareBtnText}>Share Code</Text>
           </TouchableOpacity>
         </View>
 
@@ -67,14 +65,7 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
         <View style={styles.collaboratorsList}>
           {collaborators.map(user => (
             <View key={user.id} style={styles.userRow}>
-              <View
-                style={[
-                  styles.userAvatar,
-                  { backgroundColor: user.avatarColor },
-                ]}
-              >
-                <Text style={styles.userInitials}>{user.initials}</Text>
-              </View>
+              <Avatar user={user} size={32} style={styles.userAvatar} />
               <View style={styles.userInfo}>
                 <Text style={styles.userName}>{user.name}</Text>
                 <Text style={styles.userEmail}>{user.email}</Text>
@@ -129,24 +120,16 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     color: THEME.colors.primaryDark,
   },
-  copyBtn: {
+  shareBtn: {
     backgroundColor: THEME.colors.primary,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: THEME.borderRadius.md,
   },
-  copyBtnSuccess: {
-    backgroundColor: THEME.colors.successLight,
-    borderWidth: 1,
-    borderColor: THEME.colors.success,
-  },
-  copyBtnText: {
+  shareBtnText: {
     color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 13,
-  },
-  copyBtnTextSuccess: {
-    color: THEME.colors.success,
   },
   hintText: {
     ...THEME.typography.caption,
@@ -169,17 +152,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   userAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginRight: 10,
-  },
-  userInitials: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
   },
   userInfo: {
     flex: 1,

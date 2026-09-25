@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { StatusBar, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -24,11 +24,19 @@ function AppContent() {
   );
 }
 
+function LoadingScreen() {
+  return (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color={THEME.colors.primary} />
+    </View>
+  );
+}
+
 function App(): React.JSX.Element {
   return (
     <SafeAreaProvider>
       <StatusBar barStyle="dark-content" />
-      <AppProviders>
+      <AppProviders fallback={<LoadingScreen />}>
         <AppContent />
       </AppProviders>
     </SafeAreaProvider>
@@ -39,6 +47,12 @@ const styles = StyleSheet.create({
   rootContainer: {
     flex: 1,
     backgroundColor: THEME.colors.surface,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: THEME.colors.background,
   },
 });
 

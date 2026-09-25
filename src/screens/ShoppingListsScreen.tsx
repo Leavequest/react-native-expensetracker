@@ -5,12 +5,20 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  TextInput,
+  Alert,
 } from 'react-native';
-import { Header, CustomModal, Button } from '../components/common';
+import {
+  Header,
+  CustomModal,
+  Button,
+  ErrorBanner,
+  FormInput,
+  FormLabel,
+} from '../components/common';
 import { ShoppingListCard, AddListModal } from '../components/shopping';
 import { THEME } from '../constants';
 import { useShoppingList } from '../context';
+import { ShoppingList } from '../types';
 import { ShoppingListDetailScreen } from './ShoppingListDetailScreen';
 
 export const ShoppingListsScreen: React.FC = () => {
@@ -32,9 +40,20 @@ export const ShoppingListsScreen: React.FC = () => {
     );
   }
 
+  const handleDeleteList = (list: ShoppingList) => {
+    Alert.alert(
+      'Delete shopping list?',
+      `"${list.name}" and its ${list.items.length} item(s) will be permanently removed.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => deleteList(list.id) },
+      ]
+    );
+  };
+
   const handleJoin = () => {
     if (!joinCodeInput.trim()) {
-      setJoinError('Please enter a share code (e.g., LIDL-4821).');
+      setJoinError('Please enter a share code (e.g., LID-4821).');
       return;
     }
 
@@ -93,7 +112,7 @@ export const ShoppingListsScreen: React.FC = () => {
           <ShoppingListCard
             list={item}
             onPress={list => setActiveListId(list.id)}
-            onDelete={deleteList}
+            onDelete={handleDeleteList}
           />
         )}
         ListEmptyComponent={
@@ -123,13 +142,12 @@ export const ShoppingListsScreen: React.FC = () => {
         subtitle="Enter the share code given by a flatmate or family member"
       >
         <View style={styles.joinModalContent}>
-          {joinError ? <Text style={styles.errorText}>{joinError}</Text> : null}
+          <ErrorBanner message={joinError} />
 
-          <Text style={styles.inputLabel}>Share Code</Text>
-          <TextInput
+          <FormLabel style={styles.joinLabel}>Share Code</FormLabel>
+          <FormInput
             style={styles.joinInput}
-            placeholder="e.g. LIDL-4821 or CAR-9102"
-            placeholderTextColor={THEME.colors.textMuted}
+            placeholder="e.g. LID-4821 or CAR-9102"
             autoCapitalize="characters"
             value={joinCodeInput}
             onChangeText={t => {
@@ -239,32 +257,14 @@ const styles = StyleSheet.create({
   joinModalContent: {
     paddingBottom: THEME.spacing.md,
   },
-  errorText: {
-    backgroundColor: THEME.colors.dangerLight,
-    color: THEME.colors.danger,
-    padding: THEME.spacing.sm,
-    borderRadius: THEME.borderRadius.sm,
-    marginBottom: THEME.spacing.md,
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  inputLabel: {
-    ...THEME.typography.captionBold,
-    color: THEME.colors.textSecondary,
-    marginBottom: 6,
-    textTransform: 'uppercase',
+  joinLabel: {
+    marginTop: 0,
   },
   joinInput: {
-    backgroundColor: THEME.colors.surfaceSubtle,
-    borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
-    borderRadius: THEME.borderRadius.md,
-    paddingHorizontal: THEME.spacing.md,
     paddingVertical: THEME.spacing.md,
     fontSize: 18,
     fontWeight: '700',
     letterSpacing: 1.5,
-    color: THEME.colors.textPrimary,
   },
   joinActions: {
     marginTop: THEME.spacing.xl,

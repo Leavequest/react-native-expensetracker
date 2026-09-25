@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
-import { CustomModal, Button } from '../common';
+  Avatar,
+  Button,
+  Chip,
+  ChipRow,
+  CustomModal,
+  ErrorBanner,
+  FormInput,
+  FormLabel,
+} from '../common';
 import {
   GROCERY_AISLES,
   QUICK_GROCERY_ITEMS,
@@ -16,7 +18,7 @@ import {
 } from '../../constants';
 import { GroceryAisle } from '../../types';
 import { useShoppingList, useUser } from '../../context';
-import { parseCurrencyInput } from '../../utils';
+import { getCurrencySymbol, parseCurrencyInput } from '../../utils';
 
 interface AddItemModalProps {
   visible: boolean;
@@ -42,7 +44,7 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
   );
   const [error, setError] = useState('');
 
-  const currencySymbol = currency === 'EUR' ? '€' : currency === 'USD' ? '$' : '£';
+  const currencySymbol = getCurrencySymbol(currency);
 
   const resetForm = () => {
     setName('');
@@ -51,6 +53,11 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
     setSelectedAisle('Fresh Produce');
     setAssignedUserId(activeUser.id);
     setError('');
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
   };
 
   const handleSelectPreset = (preset: QuickGroceryPreset) => {
@@ -68,40 +75,35 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
     }
 
     const price = parseCurrencyInput(estimatedPriceInput);
+    // Ignore an assignee who was removed from the household while the form was open
+    const assignee = householdUsers.some(u => u.id === assignedUserId)
+      ? assignedUserId
+      : undefined;
 
     addItem(listId, {
       name: name.trim(),
       quantity: quantity.trim() || '1',
       estimatedPrice: price > 0 ? price : undefined,
       aisle: selectedAisle,
-      assignedToUserId: assignedUserId || undefined,
+      assignedToUserId: assignee,
       addedByUserId: activeUser.id,
     });
 
-    resetForm();
-    onClose();
+    handleClose();
   };
 
   return (
     <CustomModal
       visible={visible}
-      onClose={() => {
-        resetForm();
-        onClose();
-      }}
+      onClose={handleClose}
       title="Add Item to List"
       subtitle="Select popular groceries or type a custom item"
     >
       <ScrollView showsVerticalScrollIndicator={false} style={styles.formContainer}>
-        {error ? <Text style={styles.errorBanner}>{error}</Text> : null}
+        <ErrorBanner message={error} />
 
-        {/* Quick Presets */}
-        <Text style={styles.label}>Quick Presets</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.presetsRow}
-        >
+        <FormLabel>Quick Presets</FormLabel>
+        <ChipRow contentContainerStyle={styles.presetsRow}>
           {QUICK_GROCERY_ITEMS.map(preset => (
             <TouchableOpacity
               key={preset.name}
@@ -112,14 +114,11 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
               <Text style={styles.presetText}>{preset.name}</Text>
             </TouchableOpacity>
           ))}
-        </ScrollView>
+        </ChipRow>
 
-        {/* Item Name */}
-        <Text style={styles.label}>Item Name</Text>
-        <TextInput
-          style={styles.input}
+        <FormLabel>Item Name</FormLabel>
+        <FormInput
           placeholder="e.g. Greek Yogurt, Tomatoes, Eggs"
-          placeholderTextColor={THEME.colors.textMuted}
           value={name}
           onChangeText={t => {
             setName(t);
@@ -127,25 +126,20 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
           }}
         />
 
-        {/* Quantity and Price Row */}
         <View style={styles.rowInputs}>
           <View style={styles.flexHalf}>
-            <Text style={styles.label}>Quantity</Text>
-            <TextInput
-              style={styles.input}
+            <FormLabel>Quantity</FormLabel>
+            <FormInput
               placeholder="e.g., 2L, 500g, 1 pk"
-              placeholderTextColor={THEME.colors.textMuted}
               value={quantity}
               onChangeText={setQuantity}
             />
           </View>
 
           <View style={styles.flexHalf}>
-            <Text style={styles.label}>Est. Price ({currencySymbol})</Text>
-            <TextInput
-              style={styles.input}
+            <FormLabel>Est. Price ({currencySymbol})</FormLabel>
+            <FormInput
               placeholder="0.00"
-              placeholderTextColor={THEME.colors.textMuted}
               keyboardType="decimal-pad"
               value={estimatedPriceInput}
               onChangeText={setEstimatedPriceInput}
@@ -153,44 +147,21 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
           </View>
         </View>
 
-        {/* Aisle Selection */}
-        <Text style={styles.label}>Aisle / Section</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipsRow}
-        >
-          {GROCERY_AISLES.map(aisle => {
-            const isSelected = selectedAisle === aisle.name;
-            return (
-              <TouchableOpacity
-                key={aisle.name}
-                activeOpacity={0.7}
-                onPress={() => setSelectedAisle(aisle.name)}
-                style={[
-                  styles.chip,
-                  isSelected && {
-                    backgroundColor: aisle.color,
-                    borderColor: aisle.color,
-                  },
-                ]}
-              >
-                <Text style={styles.chipIcon}>{aisle.icon}</Text>
-                <Text
-                  style={[
-                    styles.chipText,
-                    isSelected && styles.chipTextSelected,
-                  ]}
-                >
-                  {aisle.name}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+        <FormLabel>Aisle / Section</FormLabel>
+        <ChipRow>
+          {GROCERY_AISLES.map(aisle => (
+            <Chip
+              key={aisle.name}
+              label={aisle.name}
+              icon={aisle.icon}
+              selected={selectedAisle === aisle.name}
+              selectedColor={aisle.color}
+              onPress={() => setSelectedAisle(aisle.name)}
+            />
+          ))}
+        </ChipRow>
 
-        {/* Assignee Selection */}
-        <Text style={styles.label}>Assign to Member</Text>
+        <FormLabel>Assign to Member</FormLabel>
         <View style={styles.assigneeRow}>
           {householdUsers.map(user => {
             const isSelected = assignedUserId === user.id;
@@ -198,22 +169,11 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
               <TouchableOpacity
                 key={user.id}
                 activeOpacity={0.7}
-                onPress={() =>
-                  setAssignedUserId(isSelected ? undefined : user.id)
-                }
-                style={[
-                  styles.assigneeChip,
-                  isSelected && styles.assigneeChipSelected,
-                ]}
+                onPress={() => setAssignedUserId(isSelected ? undefined : user.id)}
+                accessibilityState={{ selected: isSelected }}
+                style={[styles.assigneeChip, isSelected && styles.assigneeChipSelected]}
               >
-                <View
-                  style={[
-                    styles.assigneeAvatar,
-                    { backgroundColor: user.avatarColor },
-                  ]}
-                >
-                  <Text style={styles.assigneeInitials}>{user.initials}</Text>
-                </View>
+                <Avatar user={user} size={20} />
                 <Text
                   style={[
                     styles.assigneeNameText,
@@ -244,26 +204,8 @@ const styles = StyleSheet.create({
   formContainer: {
     maxHeight: 520,
   },
-  errorBanner: {
-    backgroundColor: THEME.colors.dangerLight,
-    color: THEME.colors.danger,
-    padding: THEME.spacing.sm,
-    borderRadius: THEME.borderRadius.sm,
-    marginBottom: THEME.spacing.md,
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  label: {
-    ...THEME.typography.captionBold,
-    color: THEME.colors.textSecondary,
-    marginBottom: 6,
-    marginTop: THEME.spacing.sm,
-    textTransform: 'uppercase',
-  },
   presetsRow: {
-    flexDirection: 'row',
     gap: 6,
-    paddingVertical: 4,
     marginBottom: 8,
   },
   presetChip: {
@@ -279,50 +221,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: THEME.colors.primaryDark,
   },
-  input: {
-    backgroundColor: THEME.colors.surfaceSubtle,
-    borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
-    borderRadius: THEME.borderRadius.md,
-    paddingHorizontal: THEME.spacing.md,
-    paddingVertical: THEME.spacing.sm + 2,
-    fontSize: 15,
-    color: THEME.colors.textPrimary,
-  },
   rowInputs: {
     flexDirection: 'row',
     gap: 12,
   },
   flexHalf: {
     flex: 1,
-  },
-  chipsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingVertical: 4,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: THEME.borderRadius.full,
-    borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
-    backgroundColor: THEME.colors.surfaceSubtle,
-  },
-  chipIcon: {
-    marginRight: 6,
-    fontSize: 14,
-  },
-  chipText: {
-    fontSize: 13,
-    color: THEME.colors.textPrimary,
-    fontWeight: '500',
-  },
-  chipTextSelected: {
-    color: '#FFFFFF',
-    fontWeight: '700',
   },
   assigneeRow: {
     flexDirection: 'row',
@@ -344,18 +248,6 @@ const styles = StyleSheet.create({
   assigneeChipSelected: {
     backgroundColor: THEME.colors.primaryLight,
     borderColor: THEME.colors.primary,
-  },
-  assigneeAvatar: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  assigneeInitials: {
-    color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '700',
   },
   assigneeNameText: {
     fontSize: 12,
