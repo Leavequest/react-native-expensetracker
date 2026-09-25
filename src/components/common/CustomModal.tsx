@@ -1,15 +1,15 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useCallback, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import {
-  Modal,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-} from 'react-native';
+  BottomSheetBackdrop,
+  BottomSheetBackdropProps,
+  BottomSheetModal,
+  BottomSheetScrollView,
+} from '@gorhom/bottom-sheet';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { THEME } from '../../constants';
+import { Icon } from './Icon';
+import { InsideSheetContext } from './sheetContext';
 
 interface CustomModalProps {
   visible: boolean;
@@ -19,6 +19,20 @@ interface CustomModalProps {
   children: ReactNode;
 }
 
+const renderBackdrop = (props: BottomSheetBackdropProps) => (
+  <BottomSheetBackdrop
+    {...props}
+    appearsOnIndex={0}
+    disappearsOnIndex={-1}
+    pressBehavior="close"
+    opacity={0.45}
+  />
+);
+
+/**
+ * Bottom sheet with a title bar. Sizes itself to its content, scrolls when taller
+ * than the screen, closes on drag-down / backdrop tap, and keeps inputs above the keyboard.
+ */
 export const CustomModal: React.FC<CustomModalProps> = ({
   visible,
   onClose,
@@ -26,59 +40,79 @@ export const CustomModal: React.FC<CustomModalProps> = ({
   subtitle,
   children,
 }) => {
-  return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={onClose}
-    >
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.overlay}>
-          <TouchableWithoutFeedback>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-              style={styles.modalContent}
-            >
-              <View style={styles.header}>
-                <View style={styles.headerText}>
-                  <Text style={styles.title}>{title}</Text>
-                  {subtitle ? (
-                    <Text style={styles.subtitle}>{subtitle}</Text>
-                  ) : null}
-                </View>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={onClose}
-                  style={styles.closeButton}
-                >
-                  <Text style={styles.closeIcon}>✕</Text>
-                </TouchableOpacity>
-              </View>
+  const sheetRef = useRef<BottomSheetModal>(null);
+  const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
 
-              <View style={styles.body}>{children}</View>
-            </KeyboardAvoidingView>
-          </TouchableWithoutFeedback>
+  useEffect(() => {
+    if (visible) {
+      sheetRef.current?.present();
+    } else {
+      sheetRef.current?.dismiss();
+    }
+  }, [visible]);
+
+  // Fires for every way the sheet can close (drag, backdrop, back button, programmatic)
+  const handleDismiss = useCallback(() => {
+    if (visible) onClose();
+  }, [visible, onClose]);
+
+  return (
+    <BottomSheetModal
+      ref={sheetRef}
+      onDismiss={handleDismiss}
+      enableDynamicSizing
+      maxDynamicContentSize={windowHeight * 0.9}
+      topInset={insets.top}
+      backdropComponent={renderBackdrop}
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
+      android_keyboardInputMode="adjustResize"
+      backgroundStyle={styles.background}
+      handleIndicatorStyle={styles.handleIndicator}
+    >
+      <BottomSheetScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: Math.max(insets.bottom, THEME.spacing.lg) + THEME.spacing.sm },
+        ]}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.header}>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>{title}</Text>
+            {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+          </View>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={onClose}
+            style={styles.closeButton}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            accessibilityRole="button"
+            accessibilityLabel="Close"
+          >
+            <Icon name="close" size={16} color={THEME.colors.textSecondary} strokeWidth={2.5} />
+          </TouchableOpacity>
         </View>
-      </TouchableWithoutFeedback>
-    </Modal>
+
+        <InsideSheetContext.Provider value={true}>{children}</InsideSheetContext.Provider>
+      </BottomSheetScrollView>
+    </BottomSheetModal>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.45)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
+  background: {
     backgroundColor: THEME.colors.surface,
     borderTopLeftRadius: THEME.borderRadius.xl,
     borderTopRightRadius: THEME.borderRadius.xl,
-    paddingTop: THEME.spacing.lg,
-    paddingBottom: Platform.OS === 'ios' ? 36 : THEME.spacing.xl,
+  },
+  handleIndicator: {
+    backgroundColor: THEME.colors.surfaceBorder,
+    width: 40,
+  },
+  content: {
     paddingHorizontal: THEME.spacing.xl,
-    maxHeight: '85%',
   },
   header: {
     flexDirection: 'row',
@@ -108,13 +142,5 @@ const styles = StyleSheet.create({
     backgroundColor: THEME.colors.surfaceSubtle,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  closeIcon: {
-    fontSize: 14,
-    color: THEME.colors.textSecondary,
-    fontWeight: '700',
-  },
-  body: {
-    // Child container
   },
 });

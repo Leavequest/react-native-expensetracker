@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Button, Chip, ChipRow, CustomModal, FormInput, FormLabel } from '../common';
 import { EUROPEAN_STORES, StorePreset, THEME } from '../../constants';
 import { useShoppingList } from '../../context';
@@ -52,36 +52,34 @@ export const AddListModal: React.FC<AddListModalProps> = ({
       title="Create New Shopping List"
       subtitle="Select a European supermarket preset"
     >
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <FormLabel>Select Supermarket</FormLabel>
-        <ChipRow contentContainerStyle={styles.storesRow}>
-          {EUROPEAN_STORES.map(store => (
-            <Chip
-              key={store.name}
-              label={store.name}
-              selected={selectedStore.name === store.name}
-              selectedColor={store.color}
-              onPress={() => handleSelectStore(store)}
-            />
-          ))}
-        </ChipRow>
-
-        <FormLabel>List Name</FormLabel>
-        <FormInput
-          placeholder={`e.g. ${selectedStore.name} Groceries`}
-          value={listName}
-          onChangeText={setListName}
-        />
-
-        <View style={styles.actionsContainer}>
-          <Button
-            title="Create Shopping List"
-            onPress={handleSubmit}
-            size="lg"
-            style={styles.submitBtn}
+      <FormLabel>Select Supermarket</FormLabel>
+      <ChipRow contentContainerStyle={styles.storesRow}>
+        {EUROPEAN_STORES.map(store => (
+          <Chip
+            key={store.name}
+            label={store.name}
+            selected={selectedStore.name === store.name}
+            selectedColor={store.color}
+            onPress={() => handleSelectStore(store)}
           />
-        </View>
-      </ScrollView>
+        ))}
+      </ChipRow>
+
+      <FormLabel>List Name</FormLabel>
+      <FormInput
+        placeholder={`e.g. ${selectedStore.name} Groceries`}
+        value={listName}
+        onChangeText={setListName}
+      />
+
+      <View style={styles.actionsContainer}>
+        <Button
+          title="Create Shopping List"
+          onPress={handleSubmit}
+          size="lg"
+          style={styles.submitBtn}
+        />
+      </View>
     </CustomModal>
   );
 };

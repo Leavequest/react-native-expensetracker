@@ -25,6 +25,8 @@ interface ShoppingListContextType {
   ) => ShoppingItem;
   toggleItemCompleted: (listId: string, itemId: string) => void;
   deleteItem: (listId: string, itemId: string) => void;
+  /** Puts back a deleted item at its old position (used by Undo). No-op if it still exists. */
+  restoreItem: (listId: string, item: ShoppingItem, index: number) => void;
   joinListByCode: (code: string) => boolean;
   /** Drops a deleted household member from every list and unassigns their items. */
   removeMemberFromLists: (userId: string) => void;
@@ -145,6 +147,17 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({
     [updateListItems]
   );
 
+  const restoreItem = useCallback(
+    (listId: string, item: ShoppingItem, index: number) => {
+      updateListItems(listId, items =>
+        items.some(i => i.id === item.id)
+          ? items
+          : [...items.slice(0, index), item, ...items.slice(index)]
+      );
+    },
+    [updateListItems]
+  );
+
   const joinListByCode = useCallback(
     (code: string): boolean => {
       const normalized = code.trim().toUpperCase();
@@ -232,6 +245,7 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({
       addItem,
       toggleItemCompleted,
       deleteItem,
+      restoreItem,
       joinListByCode,
       removeMemberFromLists,
       finishShoppingTrip,
@@ -245,6 +259,7 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({
       addItem,
       toggleItemCompleted,
       deleteItem,
+      restoreItem,
       joinListByCode,
       removeMemberFromLists,
       finishShoppingTrip,

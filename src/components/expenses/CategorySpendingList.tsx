@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { CategorySpending } from '../../context';
-import { EXPENSE_CATEGORIES, THEME } from '../../constants';
+import { getCategoryInfo, THEME } from '../../constants';
 import { useUser } from '../../context';
-import { ProgressBar } from '../common';
+import { CategoryIcon, ProgressBar } from '../common';
 
 interface CategorySpendingListProps {
   categories: CategorySpending[];
@@ -25,16 +25,13 @@ export const CategorySpendingList: React.FC<CategorySpendingListProps> = ({
   return (
     <View style={styles.container}>
       {categories.map(item => {
-        const meta = EXPENSE_CATEGORIES.find(c => c.name === item.category) || {
-          icon: '💳',
-          color: THEME.colors.primary,
-        };
+        const meta = getCategoryInfo(item.category);
 
         return (
           <View key={item.category} style={styles.itemRow}>
             <View style={styles.headerRow}>
               <View style={styles.categoryInfo}>
-                <Text style={styles.categoryIcon}>{meta.icon}</Text>
+                <CategoryIcon name={meta.icon} color={meta.color} size={28} />
                 <Text style={styles.categoryName}>{item.category}</Text>
               </View>
               <View style={styles.amountInfo}>
@@ -95,9 +92,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-  },
-  categoryIcon: {
-    fontSize: 16,
   },
   categoryName: {
     ...THEME.typography.bodyBold,

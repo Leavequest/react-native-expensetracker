@@ -1,22 +1,24 @@
 import { ExpenseCategory, GroceryAisle, PaymentMethod } from '../types';
+// Type-only import: constants must not pull UI components in at runtime
+import type { IconName } from '../components/common/Icon';
 
 export interface CategoryInfo {
   name: ExpenseCategory;
-  icon: string;
+  icon: IconName;
   color: string;
 }
 
 export const EXPENSE_CATEGORIES: CategoryInfo[] = [
-  { name: 'Groceries', icon: '🛒', color: '#10B981' },
-  { name: 'Rent & Housing', icon: '🏠', color: '#6366F1' },
-  { name: 'Utilities & Bills', icon: '💡', color: '#F59E0B' },
-  { name: 'Dining & Takeout', icon: '🍽️', color: '#EF4444' },
-  { name: 'Transportation', icon: '🚇', color: '#3B82F6' },
-  { name: 'Healthcare', icon: '💊', color: '#EC4899' },
-  { name: 'Entertainment & Leisure', icon: '🎟️', color: '#8B5CF6' },
-  { name: 'Shopping', icon: '🛍️', color: '#14B8A6' },
-  { name: 'Personal Care', icon: '✨', color: '#F97316' },
-  { name: 'Services & Subscriptions', icon: '📱', color: '#64748B' },
+  { name: 'Groceries', icon: 'cart', color: '#10B981' },
+  { name: 'Rent & Housing', icon: 'home', color: '#6366F1' },
+  { name: 'Utilities & Bills', icon: 'bulb', color: '#F59E0B' },
+  { name: 'Dining & Takeout', icon: 'dining', color: '#EF4444' },
+  { name: 'Transportation', icon: 'transit', color: '#3B82F6' },
+  { name: 'Healthcare', icon: 'health', color: '#EC4899' },
+  { name: 'Entertainment & Leisure', icon: 'ticket', color: '#8B5CF6' },
+  { name: 'Shopping', icon: 'bag', color: '#14B8A6' },
+  { name: 'Personal Care', icon: 'sparkles', color: '#F97316' },
+  { name: 'Services & Subscriptions', icon: 'phone', color: '#64748B' },
 ];
 
 export const PAYMENT_METHODS: PaymentMethod[] = [
@@ -29,21 +31,39 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
 
 export interface AisleInfo {
   name: GroceryAisle;
-  icon: string;
+  icon: IconName;
   color: string;
 }
 
 export const GROCERY_AISLES: AisleInfo[] = [
-  { name: 'Fresh Produce', icon: '🥬', color: '#10B981' },
-  { name: 'Dairy & Eggs', icon: '🧀', color: '#FBBF24' },
-  { name: 'Meat & Fish', icon: '🥩', color: '#F87171' },
-  { name: 'Bakery', icon: '🥖', color: '#F59E0B' },
-  { name: 'Pantry & Dry Goods', icon: '🍝', color: '#A855F7' },
-  { name: 'Frozen', icon: '❄️', color: '#38BDF8' },
-  { name: 'Beverages', icon: '☕', color: '#06B6D4' },
-  { name: 'Household & Cleaning', icon: '🧼', color: '#64748B' },
-  { name: 'Other', icon: '📦', color: '#94A3B8' },
+  { name: 'Fresh Produce', icon: 'produce', color: '#10B981' },
+  { name: 'Dairy & Eggs', icon: 'dairy', color: '#FBBF24' },
+  { name: 'Meat & Fish', icon: 'meat', color: '#F87171' },
+  { name: 'Bakery', icon: 'bakery', color: '#F59E0B' },
+  { name: 'Pantry & Dry Goods', icon: 'pantry', color: '#A855F7' },
+  { name: 'Frozen', icon: 'frozen', color: '#38BDF8' },
+  { name: 'Beverages', icon: 'drinks', color: '#06B6D4' },
+  { name: 'Household & Cleaning', icon: 'cleaning', color: '#64748B' },
+  { name: 'Other', icon: 'package', color: '#94A3B8' },
 ];
+
+/** Display info for an expense category, with a neutral fallback for unknown values. */
+export function getCategoryInfo(category: ExpenseCategory): CategoryInfo {
+  return (
+    EXPENSE_CATEGORIES.find(c => c.name === category) ?? {
+      name: category,
+      icon: 'wallet',
+      color: '#64748B',
+    }
+  );
+}
+
+/** Display info for a grocery aisle, with a neutral fallback for unknown values. */
+export function getAisleInfo(aisle: GroceryAisle): AisleInfo {
+  return (
+    GROCERY_AISLES.find(a => a.name === aisle) ?? { name: aisle, icon: 'package', color: '#94A3B8' }
+  );
+}
 
 export interface StorePreset {
   name: string;

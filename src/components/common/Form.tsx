@@ -6,7 +6,9 @@ import {
   TextInputProps,
   TextStyle,
 } from 'react-native';
+import { BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { THEME } from '../../constants';
+import { useIsInsideSheet } from './sheetContext';
 
 interface FormLabelProps {
   children: React.ReactNode;
@@ -18,14 +20,20 @@ export const FormLabel: React.FC<FormLabelProps> = ({ children, style }) => (
   <Text style={[styles.label, style]}>{children}</Text>
 );
 
-/** Themed text input used across all forms. */
-export const FormInput: React.FC<TextInputProps> = ({ style, ...props }) => (
-  <TextInput
-    placeholderTextColor={THEME.colors.textMuted}
-    {...props}
-    style={[styles.input, style]}
-  />
-);
+/**
+ * Themed text input used across all forms. Inside a bottom sheet it uses the
+ * sheet-aware input so the sheet moves up with the keyboard.
+ */
+export const FormInput: React.FC<TextInputProps> = ({ style, ...props }) => {
+  const Input = useIsInsideSheet() ? BottomSheetTextInput : TextInput;
+  return (
+    <Input
+      placeholderTextColor={THEME.colors.textMuted}
+      {...props}
+      style={[styles.input, style]}
+    />
+  );
+};
 
 interface ErrorBannerProps {
   message?: string | null;

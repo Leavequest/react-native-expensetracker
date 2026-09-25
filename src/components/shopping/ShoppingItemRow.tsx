@@ -1,15 +1,61 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import Animated, {
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
+import HapticFeedback from 'react-native-haptic-feedback';
 import { ShoppingItem } from '../../types';
-import { GROCERY_AISLES, THEME } from '../../constants';
+import { getAisleInfo, THEME } from '../../constants';
 import { useUser } from '../../context';
-import { Avatar, Badge } from '../common';
+import { Avatar, Badge, Icon, deleteAccessibilityProps } from '../common';
 
 interface ShoppingItemRowProps {
   item: ShoppingItem;
   onToggle: (itemId: string) => void;
-  onDelete?: (itemId: string) => void;
+  /** Exposed to screen readers as a "Delete" action (sighted users swipe) */
+  onDelete?: (item: ShoppingItem) => void;
 }
+
+const CheckBox: React.FC<{ checked: boolean }> = ({ checked }) => {
+  const progress = useSharedValue(checked ? 1 : 0);
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    progress.value = withTiming(checked ? 1 : 0, { duration: 180 });
+    if (checked) {
+      scale.value = withSequence(withTiming(0.8, { duration: 80 }), withSpring(1));
+    }
+  }, [checked, progress, scale]);
+
+  const boxStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      progress.value,
+      [0, 1],
+      [THEME.colors.surface, THEME.colors.primary]
+    ),
+    borderColor: interpolateColor(
+      progress.value,
+      [0, 1],
+      [THEME.colors.surfaceBorder, THEME.colors.primary]
+    ),
+    transform: [{ scale: scale.value }],
+  }));
+
+  const checkStyle = useAnimatedStyle(() => ({ opacity: progress.value }));
+
+  return (
+    <Animated.View style={[styles.checkbox, boxStyle]}>
+      <Animated.View style={checkStyle}>
+        <Icon name="check" size={16} color={THEME.colors.textInverse} strokeWidth={3} />
+      </Animated.View>
+    </Animated.View>
+  );
+};
 
 export const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
   item,
@@ -18,45 +64,36 @@ export const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
 }) => {
   const { formatAmount, householdUsers } = useUser();
 
-  const aisleMeta = GROCERY_AISLES.find(a => a.name === item.aisle) || {
-    name: item.aisle,
-    icon: '📦',
-    color: THEME.colors.textMuted,
-  };
-
+  const aisleMeta = getAisleInfo(item.aisle);
   const assignedUser = item.assignedToUserId
     ? householdUsers.find(u => u.id === item.assignedToUserId)
     : null;
 
+  const handleToggle = () => {
+    HapticFeedback.trigger(item.isCompleted ? 'selection' : 'impactLight');
+    onToggle(item.id);
+  };
+
   return (
-    <View
-      style={[
+    <Pressable
+      onPress={handleToggle}
+      android_ripple={{ color: THEME.colors.surfaceSubtle }}
+      style={({ pressed }) => [
         styles.container,
         item.isCompleted && styles.completedContainer,
+        pressed && styles.pressed,
       ]}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: item.isCompleted }}
+      accessibilityLabel={`${item.name}, ${item.quantity}`}
+      {...(onDelete ? deleteAccessibilityProps(() => onDelete(item)) : {})}
     >
-      {/* Checkbox */}
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={() => onToggle(item.id)}
-        style={[
-          styles.checkbox,
-          item.isCompleted && styles.checkboxCompleted,
-        ]}
-      >
-        {item.isCompleted ? (
-          <Text style={styles.checkmark}>✓</Text>
-        ) : null}
-      </TouchableOpacity>
+      <CheckBox checked={item.isCompleted} />
 
-      {/* Details */}
       <View style={styles.details}>
         <View style={styles.nameRow}>
           <Text
-            style={[
-              styles.name,
-              item.isCompleted && styles.nameCompleted,
-            ]}
+            style={[styles.name, item.isCompleted && styles.nameCompleted]}
             numberOfLines={1}
           >
             {item.name}
@@ -69,12 +106,7 @@ export const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
         </View>
 
         <View style={styles.metaRow}>
-          <Badge
-            label={item.aisle}
-            icon={aisleMeta.icon}
-            color={aisleMeta.color}
-            size="sm"
-          />
+          <Badge label={item.aisle} icon={aisleMeta.icon} color={aisleMeta.color} size="sm" />
 
           {assignedUser ? (
             <View style={styles.assigneeContainer}>
@@ -85,31 +117,12 @@ export const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
         </View>
       </View>
 
-      {/* Right Column: Price & Actions */}
-      <View style={styles.right}>
-        {item.estimatedPrice ? (
-          <Text
-            style={[
-              styles.price,
-              item.isCompleted && styles.priceCompleted,
-            ]}
-          >
-            {formatAmount(item.estimatedPrice)}
-          </Text>
-        ) : null}
-
-        {onDelete ? (
-          <TouchableOpacity
-            activeOpacity={0.6}
-            onPress={() => onDelete(item.id)}
-            style={styles.deleteBtn}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Text style={styles.deleteIcon}>✕</Text>
-          </TouchableOpacity>
-        ) : null}
-      </View>
-    </View>
+      {item.estimatedPrice ? (
+        <Text style={[styles.price, item.isCompleted && styles.priceCompleted]}>
+          {formatAmount(item.estimatedPrice)}
+        </Text>
+      ) : null}
+    </Pressable>
   );
 };
 
@@ -117,6 +130,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: 64,
     paddingVertical: THEME.spacing.md,
     paddingHorizontal: THEME.spacing.lg,
     backgroundColor: THEME.colors.surface,
@@ -124,28 +138,19 @@ const styles = StyleSheet.create({
     borderBottomColor: THEME.colors.surfaceBorder,
   },
   completedContainer: {
-    backgroundColor: '#F8FAFC',
-    opacity: 0.75,
+    backgroundColor: THEME.colors.background,
+  },
+  pressed: {
+    opacity: 0.85,
   },
   checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
+    width: 26,
+    height: 26,
+    borderRadius: 8,
     borderWidth: 2,
-    borderColor: THEME.colors.surfaceBorder,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: THEME.spacing.md,
-    backgroundColor: '#FFFFFF',
-  },
-  checkboxCompleted: {
-    backgroundColor: THEME.colors.primary,
-    borderColor: THEME.colors.primary,
-  },
-  checkmark: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800',
   },
   details: {
     flex: 1,
@@ -192,25 +197,13 @@ const styles = StyleSheet.create({
     color: THEME.colors.textMuted,
     fontSize: 10,
   },
-  right: {
-    alignItems: 'flex-end',
-    marginLeft: THEME.spacing.sm,
-    gap: 6,
-  },
   price: {
     ...THEME.typography.captionBold,
     color: THEME.colors.textPrimary,
+    marginLeft: THEME.spacing.sm,
   },
   priceCompleted: {
     color: THEME.colors.textMuted,
     textDecorationLine: 'line-through',
-  },
-  deleteBtn: {
-    padding: 2,
-  },
-  deleteIcon: {
-    fontSize: 12,
-    color: THEME.colors.textMuted,
-    fontWeight: '700',
   },
 });

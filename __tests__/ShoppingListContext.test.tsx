@@ -227,3 +227,57 @@ describe('useRemoveHouseholdMember', () => {
     expect(user!.householdUsers.length).toBe(1);
   });
 });
+
+describe('ShoppingListContext restoreItem', () => {
+  it('puts a deleted item back at its original position', async () => {
+    let captured:
+      | {
+          shopping: ReturnType<typeof useShoppingList>;
+          expense: ReturnType<typeof useExpense>;
+        }
+      | undefined;
+
+    await ReactTestRenderer.act(() => {
+      ReactTestRenderer.create(
+        <UserProvider>
+          <ExpenseProvider>
+            <ShoppingListProvider>
+              <TestShoppingConsumer onState={s => (captured = s)} />
+            </ShoppingListProvider>
+          </ExpenseProvider>
+        </UserProvider>
+      );
+    });
+
+    let listId = '';
+    await ReactTestRenderer.act(() => {
+      listId = captured!.shopping.createList('Order test', 'Spar').id;
+    });
+    for (const name of ['Eggs', 'Milk', 'Bread']) {
+      await ReactTestRenderer.act(() => {
+        captured!.shopping.addItem(listId, {
+          name,
+          quantity: '1',
+          aisle: 'Other',
+          addedByUserId: 'u1',
+        });
+      });
+    }
+
+    const names = () =>
+      captured!.shopping.lists.find(l => l.id === listId)!.items.map(i => i.name);
+    // New items are prepended
+    expect(names()).toEqual(['Bread', 'Milk', 'Eggs']);
+
+    const milk = captured!.shopping.lists.find(l => l.id === listId)!.items[1];
+    await ReactTestRenderer.act(() => {
+      captured!.shopping.deleteItem(listId, milk.id);
+    });
+    expect(names()).toEqual(['Bread', 'Eggs']);
+
+    await ReactTestRenderer.act(() => {
+      captured!.shopping.restoreItem(listId, milk, 1);
+    });
+    expect(names()).toEqual(['Bread', 'Milk', 'Eggs']);
+  });
+});

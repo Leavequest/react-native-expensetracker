@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import {
   Avatar,
   Button,
@@ -99,111 +99,106 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
       title="Add Item to List"
       subtitle="Select popular groceries or type a custom item"
     >
-      <ScrollView showsVerticalScrollIndicator={false} style={styles.formContainer}>
-        <ErrorBanner message={error} />
+      <ErrorBanner message={error} />
 
-        <FormLabel>Quick Presets</FormLabel>
-        <ChipRow contentContainerStyle={styles.presetsRow}>
-          {QUICK_GROCERY_ITEMS.map(preset => (
-            <TouchableOpacity
-              key={preset.name}
-              activeOpacity={0.7}
-              onPress={() => handleSelectPreset(preset)}
-              style={styles.presetChip}
-            >
-              <Text style={styles.presetText}>{preset.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </ChipRow>
+      <FormLabel>Quick Presets</FormLabel>
+      <ChipRow contentContainerStyle={styles.presetsRow}>
+        {QUICK_GROCERY_ITEMS.map(preset => (
+          <TouchableOpacity
+            key={preset.name}
+            activeOpacity={0.7}
+            onPress={() => handleSelectPreset(preset)}
+            style={styles.presetChip}
+          >
+            <Text style={styles.presetText}>{preset.name}</Text>
+          </TouchableOpacity>
+        ))}
+      </ChipRow>
 
-        <FormLabel>Item Name</FormLabel>
-        <FormInput
-          placeholder="e.g. Greek Yogurt, Tomatoes, Eggs"
-          value={name}
-          onChangeText={t => {
-            setName(t);
-            setError('');
-          }}
-        />
+      <FormLabel>Item Name</FormLabel>
+      <FormInput
+        placeholder="e.g. Greek Yogurt, Tomatoes, Eggs"
+        value={name}
+        onChangeText={t => {
+          setName(t);
+          setError('');
+        }}
+      />
 
-        <View style={styles.rowInputs}>
-          <View style={styles.flexHalf}>
-            <FormLabel>Quantity</FormLabel>
-            <FormInput
-              placeholder="e.g., 2L, 500g, 1 pk"
-              value={quantity}
-              onChangeText={setQuantity}
-            />
-          </View>
-
-          <View style={styles.flexHalf}>
-            <FormLabel>Est. Price ({currencySymbol})</FormLabel>
-            <FormInput
-              placeholder="0.00"
-              keyboardType="decimal-pad"
-              value={estimatedPriceInput}
-              onChangeText={setEstimatedPriceInput}
-            />
-          </View>
-        </View>
-
-        <FormLabel>Aisle / Section</FormLabel>
-        <ChipRow>
-          {GROCERY_AISLES.map(aisle => (
-            <Chip
-              key={aisle.name}
-              label={aisle.name}
-              icon={aisle.icon}
-              selected={selectedAisle === aisle.name}
-              selectedColor={aisle.color}
-              onPress={() => setSelectedAisle(aisle.name)}
-            />
-          ))}
-        </ChipRow>
-
-        <FormLabel>Assign to Member</FormLabel>
-        <View style={styles.assigneeRow}>
-          {householdUsers.map(user => {
-            const isSelected = assignedUserId === user.id;
-            return (
-              <TouchableOpacity
-                key={user.id}
-                activeOpacity={0.7}
-                onPress={() => setAssignedUserId(isSelected ? undefined : user.id)}
-                accessibilityState={{ selected: isSelected }}
-                style={[styles.assigneeChip, isSelected && styles.assigneeChipSelected]}
-              >
-                <Avatar user={user} size={20} />
-                <Text
-                  style={[
-                    styles.assigneeNameText,
-                    isSelected && styles.assigneeNameTextSelected,
-                  ]}
-                >
-                  {user.name}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        <View style={styles.actionsContainer}>
-          <Button
-            title="Add to Shopping List"
-            onPress={handleSubmit}
-            size="lg"
-            style={styles.submitButton}
+      <View style={styles.rowInputs}>
+        <View style={styles.flexHalf}>
+          <FormLabel>Quantity</FormLabel>
+          <FormInput
+            placeholder="e.g., 2L, 500g, 1 pk"
+            value={quantity}
+            onChangeText={setQuantity}
           />
         </View>
-      </ScrollView>
+
+        <View style={styles.flexHalf}>
+          <FormLabel>Est. Price ({currencySymbol})</FormLabel>
+          <FormInput
+            placeholder="0.00"
+            keyboardType="decimal-pad"
+            value={estimatedPriceInput}
+            onChangeText={setEstimatedPriceInput}
+          />
+        </View>
+      </View>
+
+      <FormLabel>Aisle / Section</FormLabel>
+      <ChipRow>
+        {GROCERY_AISLES.map(aisle => (
+          <Chip
+            key={aisle.name}
+            label={aisle.name}
+            icon={aisle.icon}
+            selected={selectedAisle === aisle.name}
+            selectedColor={aisle.color}
+            onPress={() => setSelectedAisle(aisle.name)}
+          />
+        ))}
+      </ChipRow>
+
+      <FormLabel>Assign to Member</FormLabel>
+      <View style={styles.assigneeRow}>
+        {householdUsers.map(user => {
+          const isSelected = assignedUserId === user.id;
+          return (
+            <TouchableOpacity
+              key={user.id}
+              activeOpacity={0.7}
+              onPress={() => setAssignedUserId(isSelected ? undefined : user.id)}
+              accessibilityState={{ selected: isSelected }}
+              style={[styles.assigneeChip, isSelected && styles.assigneeChipSelected]}
+            >
+              <Avatar user={user} size={20} />
+              <Text
+                style={[
+                  styles.assigneeNameText,
+                  isSelected && styles.assigneeNameTextSelected,
+                ]}
+              >
+                {user.name}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      <View style={styles.actionsContainer}>
+        <Button
+          title="Add to Shopping List"
+          onPress={handleSubmit}
+          size="lg"
+          style={styles.submitButton}
+        />
+      </View>
     </CustomModal>
   );
 };
 
 const styles = StyleSheet.create({
-  formContainer: {
-    maxHeight: 520,
-  },
   presetsRow: {
     gap: 6,
     marginBottom: 8,

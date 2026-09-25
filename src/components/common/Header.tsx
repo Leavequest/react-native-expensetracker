@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CURRENCIES, THEME } from '../../constants';
 import { useUser } from '../../context';
 import { CurrencyCode } from '../../types';
@@ -21,6 +22,7 @@ export const Header: React.FC<HeaderProps> = ({
   rightAction,
 }) => {
   const { activeUser, currency, setCurrency } = useUser();
+  const insets = useSafeAreaInsets();
 
   const handleCycleCurrency = () => {
     if (onCurrencyPress) {
@@ -34,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top + THEME.spacing.md }]}>
       <View style={styles.titleSection}>
         <Text style={styles.title}>{title}</Text>
         {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
@@ -46,6 +48,9 @@ export const Header: React.FC<HeaderProps> = ({
             activeOpacity={0.7}
             onPress={handleCycleCurrency}
             style={styles.currencyPill}
+            hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+            accessibilityRole="button"
+            accessibilityLabel={`Currency ${currency}. Tap to change.`}
           >
             <Text style={styles.currencySymbol}>{CURRENCIES[currency].symbol}</Text>
             <Text style={styles.currencyText}>{currency}</Text>

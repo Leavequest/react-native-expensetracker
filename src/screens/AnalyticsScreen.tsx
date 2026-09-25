@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { Header, Card } from '../components/common';
-import { CategorySpendingList } from '../components/expenses';
-import { THEME } from '../constants';
+import { Header, Card, CategoryIcon } from '../components/common';
+import { CategorySpendingList, SpendingDonut } from '../components/expenses';
+import { getCategoryInfo, THEME } from '../constants';
 import { useExpense, useUser } from '../context';
 import { formatMonthName, getCurrentMonthKey } from '../utils';
 
@@ -64,7 +64,7 @@ export const AnalyticsScreen: React.FC = () => {
         {/* Groceries & Supermarket Deep-dive */}
         <Card style={styles.groceriesCard}>
           <View style={styles.groceriesHeader}>
-            <Text style={styles.groceriesIcon}>🛒</Text>
+            <CategoryIcon name="cart" color={getCategoryInfo('Groceries').color} size={44} />
             <View style={styles.groceriesHeaderText}>
               <Text style={styles.groceriesTitle}>Groceries & Supermarkets</Text>
               <Text style={styles.groceriesSubtitle}>
@@ -93,6 +93,11 @@ export const AnalyticsScreen: React.FC = () => {
 
         {/* Category Breakdown */}
         <Text style={styles.sectionHeader}>Spending by Category</Text>
+        {categoryBreakdown.length > 0 ? (
+          <Card style={styles.chartCard}>
+            <SpendingDonut categories={categoryBreakdown} total={totalSpentThisMonth} />
+          </Card>
+        ) : null}
         <CategorySpendingList categories={categoryBreakdown} />
       </ScrollView>
     </View>
@@ -146,9 +151,6 @@ const styles = StyleSheet.create({
     marginBottom: THEME.spacing.md,
     gap: 12,
   },
-  groceriesIcon: {
-    fontSize: 28,
-  },
   groceriesHeaderText: {
     flex: 1,
   },
@@ -179,6 +181,10 @@ const styles = StyleSheet.create({
   },
   statRight: {
     alignItems: 'flex-end',
+  },
+  chartCard: {
+    marginHorizontal: THEME.spacing.lg,
+    marginTop: THEME.spacing.sm,
   },
   sectionHeader: {
     ...THEME.typography.titleSmall,

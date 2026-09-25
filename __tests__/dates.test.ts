@@ -3,7 +3,9 @@ import {
   formatDateReadable,
   formatMonthName,
   getCurrentMonthKey,
+  getDayKey,
   getMonthKey,
+  groupByDay,
   isDateInMonth,
 } from '../src/utils/dates';
 
@@ -46,5 +48,34 @@ describe('date utilities', () => {
     expect(formatMonthName('2026-09')).toBe('September 2026');
     expect(formatMonthName('2026-01')).toBe('January 2026');
     expect(formatMonthName('2026-12')).toBe('December 2026');
+  });
+});
+
+describe('groupByDay', () => {
+  const now = new Date(2026, 8, 25, 12, 0); // 25 Sep 2026, local time
+  const at = (day: number, hour: number) => new Date(2026, 8, day, hour, 0).toISOString();
+
+  it('groups by local day, newest first, with friendly titles', () => {
+    const groups = groupByDay(
+      [
+        { id: 'a', date: at(23, 9) },
+        { id: 'b', date: at(25, 8) },
+        { id: 'c', date: at(24, 20) },
+        { id: 'd', date: at(25, 18) },
+      ],
+      now
+    );
+
+    expect(groups.map(g => g.title)).toEqual(['Today', 'Yesterday', '23 Sep 2026']);
+    expect(groups.map(g => g.key)).toEqual(['2026-09-25', '2026-09-24', '2026-09-23']);
+    expect(groups[0].data.map(i => i.id)).toEqual(['d', 'b']);
+  });
+
+  it('returns no groups for no items', () => {
+    expect(groupByDay([], now)).toEqual([]);
+  });
+
+  it('builds local day keys', () => {
+    expect(getDayKey(new Date(2026, 0, 5, 23, 59))).toBe('2026-01-05');
   });
 });

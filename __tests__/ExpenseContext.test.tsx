@@ -73,4 +73,42 @@ describe('ExpenseContext', () => {
 
     expect(capturedState!.expenses.length).toBe(initialCount);
   });
+
+  it('restores a deleted expense exactly once', async () => {
+    let capturedState: ReturnType<typeof useExpense> | undefined;
+
+    await ReactTestRenderer.act(() => {
+      ReactTestRenderer.create(
+        <ExpenseProvider>
+          <TestExpenseConsumer
+            onState={state => {
+              capturedState = state;
+            }}
+          />
+        </ExpenseProvider>
+      );
+    });
+
+    let created: ReturnType<ReturnType<typeof useExpense>['addExpense']> | undefined;
+    await ReactTestRenderer.act(() => {
+      created = capturedState!.addExpense({
+        title: 'Coffee',
+        amount: 3.2,
+        category: 'Dining & Takeout',
+        paymentMethod: 'Cash',
+        date: new Date().toISOString(),
+        paidByUserId: 'u1',
+      });
+    });
+    await ReactTestRenderer.act(() => {
+      capturedState!.deleteExpense(created!.id);
+    });
+    expect(capturedState!.expenses).toHaveLength(0);
+
+    await ReactTestRenderer.act(() => {
+      capturedState!.restoreExpense(created!);
+      capturedState!.restoreExpense(created!);
+    });
+    expect(capturedState!.expenses).toEqual([created]);
+  });
 });

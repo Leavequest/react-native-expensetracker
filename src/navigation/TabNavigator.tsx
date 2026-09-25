@@ -1,141 +1,84 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Platform,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  ExpensesScreen,
-  ShoppingListsScreen,
-  AnalyticsScreen,
-  SettingsScreen,
-} from '../screens';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { ExpensesScreen, AnalyticsScreen, SettingsScreen } from '../screens';
 import { THEME } from '../constants';
+import { Icon, IconName } from '../components/common';
+import { ShoppingStack } from './ShoppingStack';
+import { RootTabParamList } from './types';
 
-export type TabKey = 'expenses' | 'shopping' | 'analytics' | 'settings';
+const Tab = createBottomTabNavigator<RootTabParamList>();
 
-interface TabItem {
-  key: TabKey;
-  label: string;
-  icon: string;
+interface TabIconProps {
+  name: IconName;
+  focused: boolean;
+  color: string;
 }
 
-const TABS: TabItem[] = [
-  { key: 'expenses', label: 'Expenses', icon: '💳' },
-  { key: 'shopping', label: 'Shopping', icon: '🛒' },
-  { key: 'analytics', label: 'Analytics', icon: '📊' },
-  { key: 'settings', label: 'Settings', icon: '⚙️' },
-];
+const TabIcon: React.FC<TabIconProps> = ({ name, focused, color }) => (
+  <View style={[styles.iconContainer, focused && styles.iconContainerActive]}>
+    <Icon name={name} size={20} color={color} strokeWidth={focused ? 2.4 : 2} />
+  </View>
+);
 
-export const TabNavigator: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabKey>('expenses');
-  const insets = useSafeAreaInsets();
+/** Builds a stable `tabBarIcon` renderer for a tab. */
+const tabIcon =
+  (name: IconName) =>
+  ({ focused, color }: { focused: boolean; color: string }) =>
+    <TabIcon name={name} focused={focused} color={color} />;
 
-  const renderScreen = () => {
-    switch (activeTab) {
-      case 'shopping':
-        return <ShoppingListsScreen />;
-      case 'analytics':
-        return <AnalyticsScreen />;
-      case 'settings':
-        return <SettingsScreen />;
-      case 'expenses':
-      default:
-        return <ExpensesScreen />;
-    }
-  };
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.screenContainer}>{renderScreen()}</View>
-
-      {/* Bottom Tab Bar */}
-      <View
-        style={[
-          styles.tabBar,
-          {
-            paddingBottom: Math.max(insets.bottom, Platform.OS === 'ios' ? 16 : 8),
-          },
-        ]}
-      >
-        {TABS.map(tab => {
-          const isActive = activeTab === tab.key;
-
-          return (
-            <TouchableOpacity
-              key={tab.key}
-              activeOpacity={0.7}
-              onPress={() => setActiveTab(tab.key)}
-              style={styles.tabButton}
-            >
-              <View
-                style={[
-                  styles.iconContainer,
-                  isActive && styles.iconContainerActive,
-                ]}
-              >
-                <Text style={styles.tabIcon}>{tab.icon}</Text>
-              </View>
-              <Text
-                style={[
-                  styles.tabLabel,
-                  isActive && styles.tabLabelActive,
-                ]}
-              >
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    </View>
-  );
-};
+export const TabNavigator: React.FC = () => (
+  <Tab.Navigator
+    screenOptions={({ route }) => ({
+      headerShown: false,
+      tabBarButtonTestID: `tab-${route.name}`,
+      tabBarActiveTintColor: THEME.colors.primaryDark,
+      tabBarInactiveTintColor: THEME.colors.textMuted,
+      tabBarLabelStyle: styles.tabLabel,
+      tabBarStyle: styles.tabBar,
+    })}
+  >
+    <Tab.Screen
+      name="Expenses"
+      component={ExpensesScreen}
+      options={{ tabBarIcon: tabIcon('wallet') }}
+    />
+    <Tab.Screen
+      name="Shopping"
+      component={ShoppingStack}
+      options={{ tabBarIcon: tabIcon('cart') }}
+    />
+    <Tab.Screen
+      name="Analytics"
+      component={AnalyticsScreen}
+      options={{ tabBarIcon: tabIcon('chart') }}
+    />
+    <Tab.Screen
+      name="Settings"
+      component={SettingsScreen}
+      options={{ tabBarIcon: tabIcon('settings') }}
+    />
+  </Tab.Navigator>
+);
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: THEME.colors.background,
-  },
-  screenContainer: {
-    flex: 1,
-  },
   tabBar: {
-    flexDirection: 'row',
     backgroundColor: THEME.colors.surface,
     borderTopWidth: 1,
     borderTopColor: THEME.colors.surfaceBorder,
-    paddingTop: 8,
+    paddingTop: 6,
     ...THEME.shadows.card,
-  },
-  tabButton: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   iconContainer: {
     paddingHorizontal: 12,
     paddingVertical: 3,
     borderRadius: THEME.borderRadius.full,
-    marginBottom: 2,
   },
   iconContainerActive: {
     backgroundColor: THEME.colors.primaryLight,
   },
-  tabIcon: {
-    fontSize: 18,
-  },
   tabLabel: {
-    ...THEME.typography.caption,
     fontSize: 11,
-    fontWeight: '500',
-    color: THEME.colors.textMuted,
-  },
-  tabLabelActive: {
-    color: THEME.colors.primaryDark,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 });

@@ -1,93 +1,105 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  BackHandler,
-} from 'react-native';
-import { GroceryAisle } from '../types';
-import { GROCERY_AISLES, THEME } from '../constants';
+import React, { useState, useMemo, useLayoutEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
+import { GroceryAisle, ShoppingItem } from '../types';
+import { getAisleInfo, GROCERY_AISLES, THEME } from '../constants';
 import { useShoppingList, useUser } from '../context';
 import {
   Badge,
   Button,
+  EmptyState,
+  FloatingActionButton,
+  Icon,
   ProgressBar,
+  SwipeToDelete,
+  showErrorToast,
+  showSuccessToast,
+  showUndoToast,
 } from '../components/common';
 import {
   ShoppingItemRow,
   AddItemModal,
   ShareListModal,
 } from '../components/shopping';
+import { ShoppingStackScreenProps } from '../navigation/types';
 
-interface ShoppingListDetailScreenProps {
-  listId: string;
-  onBack: () => void;
+interface ShareHeaderButtonProps {
+  onPress: () => void;
 }
 
-export const ShoppingListDetailScreen: React.FC<ShoppingListDetailScreenProps> = ({
-  listId,
-  onBack,
-}) => {
-  const { lists, toggleItemCompleted, deleteItem, finishShoppingTrip } =
+const ShareHeaderButton: React.FC<ShareHeaderButtonProps> = ({ onPress }) => (
+  <TouchableOpacity
+    activeOpacity={0.7}
+    onPress={onPress}
+    style={styles.shareIconButton}
+    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+    accessibilityRole="button"
+    accessibilityLabel="Share list"
+  >
+    <Icon name="share" size={20} color={THEME.colors.primary} />
+  </TouchableOpacity>
+);
+
+/** Shared enter/leave/move animation for rows, so ticking an item glides it between sections. */
+const rowAnimation = {
+  entering: FadeIn.duration(200),
+  exiting: FadeOut.duration(150),
+  layout: LinearTransition.duration(220),
+};
+
+export const ShoppingListDetailScreen: React.FC<
+  ShoppingStackScreenProps<'ShoppingListDetail'>
+> = ({ navigation, route }) => {
+  const { listId } = route.params;
+  const { lists, toggleItemCompleted, deleteItem, restoreItem, finishShoppingTrip } =
     useShoppingList();
   const { formatAmount } = useUser();
 
   const [addItemVisible, setAddItemVisible] = useState(false);
   const [shareModalVisible, setShareModalVisible] = useState(false);
-  const [tripFinishedBanner, setTripFinishedBanner] = useState<string | null>(null);
+  const [cartExpanded, setCartExpanded] = useState(false);
 
   const currentList = lists.find(l => l.id === listId);
 
-  // Group items by Aisle
-  const groupedItems = useMemo(() => {
-    if (!currentList) return {};
-    const groups: Partial<Record<GroceryAisle, typeof currentList.items>> = {};
-
-    currentList.items.forEach(item => {
-      if (!groups[item.aisle]) {
-        groups[item.aisle] = [];
-      }
-      groups[item.aisle]!.push(item);
-    });
-
-    return groups;
+  // Items still to buy, grouped by aisle in store order; ticked items go to the cart
+  const { toBuyByAisle, inCart } = useMemo(() => {
+    const items = currentList?.items ?? [];
+    const toBuy = items.filter(i => !i.isCompleted);
+    return {
+      toBuyByAisle: GROCERY_AISLES.map(aisle => ({
+        aisle: aisle.name as GroceryAisle,
+        items: toBuy.filter(i => i.aisle === aisle.name),
+      })).filter(group => group.items.length > 0),
+      inCart: items.filter(i => i.isCompleted),
+    };
   }, [currentList]);
 
-  // Android hardware back returns to the lists instead of closing the app
-  useEffect(() => {
-    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      onBack();
-      return true;
-    });
-    return () => subscription.remove();
-  }, [onBack]);
+  const listName = currentList?.name;
+  const hasList = currentList !== undefined;
 
-  useEffect(() => {
-    if (!tripFinishedBanner) return;
-    const timer = setTimeout(() => setTripFinishedBanner(null), 5000);
-    return () => clearTimeout(timer);
-  }, [tripFinishedBanner]);
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: listName ?? 'Shopping List',
+      headerRight: hasList
+        ? () => <ShareHeaderButton onPress={() => setShareModalVisible(true)} />
+        : undefined,
+    });
+  }, [navigation, listName, hasList]);
 
   if (!currentList) {
     return (
       <View style={styles.notFoundContainer}>
         <Text style={styles.notFoundText}>Shopping list not found.</Text>
-        <Button title="Back to Lists" onPress={onBack} />
+        <Button title="Back to Lists" onPress={() => navigation.goBack()} />
       </View>
     );
   }
 
   const totalItems = currentList.items.length;
-  const completedItems = currentList.items.filter(i => i.isCompleted).length;
+  const completedItems = inCart.length;
   const progress = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
 
-  const completedTotal = currentList.items
-    .filter(i => i.isCompleted)
-    .reduce((sum, i) => sum + (i.estimatedPrice || 0), 0);
-
+  const completedTotal = inCart.reduce((sum, i) => sum + (i.estimatedPrice || 0), 0);
   const totalEstimated = currentList.items.reduce(
     (sum, i) => sum + (i.estimatedPrice || 0),
     0
@@ -96,52 +108,34 @@ export const ShoppingListDetailScreen: React.FC<ShoppingListDetailScreenProps> =
   const handleFinishTrip = () => {
     const result = finishShoppingTrip(currentList.id);
     if (!result) {
-      Alert.alert(
-        'Nothing to record',
-        'Add an estimated price to your items so the trip can be logged as an expense.'
-      );
+      showErrorToast('Add an estimated price to your items to log the trip as an expense.');
       return;
     }
-    setTripFinishedBanner(
-      `Recorded expense of ${formatAmount(result.totalAmount)} at ${currentList.storeName} in your Expenses!`
+    showSuccessToast(
+      `Recorded ${formatAmount(result.totalAmount)} at ${currentList.storeName} in Expenses`
     );
   };
 
+  const handleDeleteItem = (item: ShoppingItem) => {
+    const index = currentList.items.findIndex(i => i.id === item.id);
+    deleteItem(currentList.id, item.id);
+    showUndoToast(`Removed "${item.name}"`, () => restoreItem(currentList.id, item, index));
+  };
+
+  const renderRow = (item: ShoppingItem) => (
+    <Animated.View key={item.id} {...rowAnimation}>
+      <SwipeToDelete onDelete={() => handleDeleteItem(item)}>
+        <ShoppingItemRow
+          item={item}
+          onToggle={id => toggleItemCompleted(currentList.id, id)}
+          onDelete={handleDeleteItem}
+        />
+      </SwipeToDelete>
+    </Animated.View>
+  );
+
   return (
     <View style={styles.container}>
-      {/* Top Bar */}
-      <View style={styles.topBar}>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={onBack}
-          style={styles.backButton}
-        >
-          <Text style={styles.backButtonText}>‹ Lists</Text>
-        </TouchableOpacity>
-
-        <View style={styles.topCenter}>
-          <Text numberOfLines={1} style={styles.topTitle}>
-            {currentList.name}
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => setShareModalVisible(true)}
-          style={styles.shareIconButton}
-        >
-          <Text style={styles.shareIconText}>🔗</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Success Notification Banner */}
-      {tripFinishedBanner ? (
-        <View style={styles.successBanner}>
-          <Text style={styles.successBannerIcon}>✅</Text>
-          <Text style={styles.successBannerText}>{tripFinishedBanner}</Text>
-        </View>
-      ) : null}
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -151,6 +145,7 @@ export const ShoppingListDetailScreen: React.FC<ShoppingListDetailScreenProps> =
           <View style={styles.storeBadgeRow}>
             <Badge
               label={currentList.storeName}
+              icon="store"
               color={currentList.color}
               backgroundColor={`${currentList.color}15`}
             />
@@ -182,7 +177,6 @@ export const ShoppingListDetailScreen: React.FC<ShoppingListDetailScreenProps> =
             style={styles.progressBar}
           />
 
-          {/* Finish Shopping Button */}
           {totalItems > 0 && (
             <Button
               title={`Finish Shopping Trip (${formatAmount(completedTotal > 0 ? completedTotal : totalEstimated)})`}
@@ -194,64 +188,68 @@ export const ShoppingListDetailScreen: React.FC<ShoppingListDetailScreenProps> =
           )}
         </View>
 
-        {/* Items Grouped by Aisle */}
         {totalItems === 0 ? (
-          <View style={styles.emptyListState}>
-            <Text style={styles.emptyIcon}>🛒</Text>
-            <Text style={styles.emptyTitle}>This shopping list is empty</Text>
-            <Text style={styles.emptySubtitle}>
-              Tap the "+" button below to add grocery items by aisle.
-            </Text>
-          </View>
+          <EmptyState
+            icon="cart"
+            title="This shopping list is empty"
+            subtitle={'Tap the "+" button below to add grocery items by aisle.'}
+          />
         ) : (
-          Object.entries(groupedItems).map(([aisle, items]) => {
-            const aisleName = aisle as GroceryAisle;
-            const aisleMeta = GROCERY_AISLES.find(a => a.name === aisleName) || {
-              icon: '📦',
-              color: THEME.colors.primary,
-            };
+          <>
+            {toBuyByAisle.length === 0 ? (
+              <Text style={styles.allDoneText}>Everything is in the cart.</Text>
+            ) : null}
 
-            return (
-              <View key={aisle} style={styles.aisleGroup}>
-                <View style={styles.aisleHeader}>
-                  <Text style={styles.aisleIcon}>{aisleMeta.icon}</Text>
-                  <Text style={styles.aisleTitle}>{aisleName}</Text>
-                  <Text style={styles.aisleCount}>({items?.length})</Text>
-                </View>
+            {toBuyByAisle.map(({ aisle, items }) => {
+              const aisleMeta = getAisleInfo(aisle);
+              return (
+                <Animated.View key={aisle} style={styles.aisleGroup} layout={rowAnimation.layout}>
+                  <View style={styles.aisleHeader}>
+                    <Icon name={aisleMeta.icon} size={14} color={aisleMeta.color} />
+                    <Text style={styles.aisleTitle}>{aisle}</Text>
+                    <Text style={styles.aisleCount}>({items.length})</Text>
+                  </View>
+                  <View style={styles.itemsWrapper}>{items.map(renderRow)}</View>
+                </Animated.View>
+              );
+            })}
 
-                <View style={styles.itemsWrapper}>
-                  {items?.map(item => (
-                    <ShoppingItemRow
-                      key={item.id}
-                      item={item}
-                      onToggle={id => toggleItemCompleted(currentList.id, id)}
-                      onDelete={id => deleteItem(currentList.id, id)}
-                    />
-                  ))}
-                </View>
-              </View>
-            );
-          })
+            {inCart.length > 0 ? (
+              <Animated.View style={styles.aisleGroup} layout={rowAnimation.layout}>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => setCartExpanded(expanded => !expanded)}
+                  style={styles.cartHeader}
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: cartExpanded }}
+                >
+                  <Icon name="cart" size={14} color={THEME.colors.primary} />
+                  <Text style={[styles.aisleTitle, styles.cartTitle]}>In cart</Text>
+                  <Text style={styles.aisleCount}>({inCart.length})</Text>
+                  <View style={[styles.chevron, cartExpanded && styles.chevronOpen]}>
+                    <Icon name="chevron-down" size={16} color={THEME.colors.textMuted} />
+                  </View>
+                </TouchableOpacity>
+                {cartExpanded ? (
+                  <View style={styles.itemsWrapper}>{inCart.map(renderRow)}</View>
+                ) : null}
+              </Animated.View>
+            ) : null}
+          </>
         )}
       </ScrollView>
 
-      {/* Floating Add Item Button */}
-      <TouchableOpacity
-        activeOpacity={0.8}
+      <FloatingActionButton
         onPress={() => setAddItemVisible(true)}
-        style={styles.floatingButton}
-      >
-        <Text style={styles.floatingButtonText}>＋</Text>
-      </TouchableOpacity>
+        accessibilityLabel="Add item"
+      />
 
-      {/* Add Item Modal */}
       <AddItemModal
         visible={addItemVisible}
         onClose={() => setAddItemVisible(false)}
         listId={currentList.id}
       />
 
-      {/* Share List Modal */}
       <ShareListModal
         visible={shareModalVisible}
         onClose={() => setShareModalVisible(false)}
@@ -277,58 +275,8 @@ const styles = StyleSheet.create({
     color: THEME.colors.textPrimary,
     marginBottom: 16,
   },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: THEME.spacing.lg,
-    paddingVertical: THEME.spacing.md,
-    backgroundColor: THEME.colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: THEME.colors.surfaceBorder,
-  },
-  backButton: {
-    paddingVertical: 4,
-    paddingRight: 10,
-  },
-  backButtonText: {
-    color: THEME.colors.primary,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  topCenter: {
-    flex: 1,
-    alignItems: 'center',
-    marginHorizontal: 8,
-  },
-  topTitle: {
-    ...THEME.typography.titleSmall,
-    color: THEME.colors.textPrimary,
-  },
   shareIconButton: {
     padding: 6,
-  },
-  shareIconText: {
-    fontSize: 18,
-  },
-  successBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: THEME.colors.successLight,
-    borderBottomWidth: 1,
-    borderBottomColor: '#A7F3D0',
-    paddingHorizontal: THEME.spacing.lg,
-    paddingVertical: 10,
-    gap: 8,
-  },
-  successBannerIcon: {
-    fontSize: 16,
-  },
-  successBannerText: {
-    flex: 1,
-    color: THEME.colors.primaryDark,
-    fontSize: 13,
-    fontWeight: '600',
   },
   scrollContent: {
     paddingBottom: 90,
@@ -385,6 +333,12 @@ const styles = StyleSheet.create({
   finishBtn: {
     marginTop: THEME.spacing.md,
   },
+  allDoneText: {
+    ...THEME.typography.body,
+    color: THEME.colors.textMuted,
+    textAlign: 'center',
+    marginBottom: THEME.spacing.md,
+  },
   aisleGroup: {
     marginBottom: THEME.spacing.md,
   },
@@ -394,9 +348,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: THEME.spacing.lg,
     paddingVertical: 6,
     gap: 6,
-  },
-  aisleIcon: {
-    fontSize: 14,
   },
   aisleTitle: {
     ...THEME.typography.captionBold,
@@ -408,46 +359,24 @@ const styles = StyleSheet.create({
     ...THEME.typography.caption,
     color: THEME.colors.textMuted,
   },
+  cartHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 44,
+    paddingHorizontal: THEME.spacing.lg,
+    gap: 6,
+  },
+  cartTitle: {
+    color: THEME.colors.primary,
+  },
+  chevron: {
+    marginLeft: 'auto',
+  },
+  chevronOpen: {
+    transform: [{ rotate: '180deg' }],
+  },
   itemsWrapper: {
     borderTopWidth: 1,
     borderColor: THEME.colors.surfaceBorder,
-  },
-  emptyListState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: THEME.spacing.xl,
-  },
-  emptyIcon: {
-    fontSize: 40,
-    marginBottom: 12,
-  },
-  emptyTitle: {
-    ...THEME.typography.titleSmall,
-    color: THEME.colors.textPrimary,
-    marginBottom: 4,
-  },
-  emptySubtitle: {
-    ...THEME.typography.body,
-    color: THEME.colors.textMuted,
-    textAlign: 'center',
-  },
-  floatingButton: {
-    position: 'absolute',
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: THEME.colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...THEME.shadows.floating,
-  },
-  floatingButtonText: {
-    color: '#FFFFFF',
-    fontSize: 28,
-    lineHeight: 32,
-    fontWeight: '600',
   },
 });

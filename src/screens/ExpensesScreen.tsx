@@ -1,36 +1,39 @@
 import React, { useState, useMemo } from 'react';
+import { View, Text, StyleSheet, SectionList } from 'react-native';
 import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
-import { Chip, ChipRow, Header } from '../components/common';
+  Chip,
+  ChipRow,
+  EmptyState,
+  FloatingActionButton,
+  Header,
+  SwipeToDelete,
+  showUndoToast,
+} from '../components/common';
 import {
   BudgetOverviewCard,
   ExpenseItemRow,
   ExpenseFormModal,
 } from '../components/expenses';
 import { EXPENSE_CATEGORIES, THEME } from '../constants';
-import { useExpense } from '../context';
+import { useExpense, useUser } from '../context';
 import { Expense, ExpenseCategory } from '../types';
+import { groupByDay } from '../utils';
 
 export const ExpensesScreen: React.FC = () => {
-  const { expenses, deleteExpense } = useExpense();
+  const { expenses, deleteExpense, restoreExpense } = useExpense();
+  const { formatAmount } = useUser();
   const [selectedCategory, setSelectedCategory] = useState<ExpenseCategory | 'All'>('All');
   const [modalVisible, setModalVisible] = useState(false);
 
-  const filteredExpenses = useMemo(() => {
-    let list = [...expenses];
-    if (selectedCategory !== 'All') {
-      list = list.filter(e => e.category === selectedCategory);
-    }
-    // Sort descending by date
-    return list.sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
+  const sections = useMemo(() => {
+    const filtered =
+      selectedCategory === 'All'
+        ? expenses
+        : expenses.filter(e => e.category === selectedCategory);
+    return groupByDay(filtered).map(group => ({
+      ...group,
+      total: group.data.reduce((sum, e) => sum + e.amount, 0),
+    }));
   }, [expenses, selectedCategory]);
 
   const categoryCounts = useMemo(() => {
@@ -42,10 +45,8 @@ export const ExpensesScreen: React.FC = () => {
   }, [expenses]);
 
   const handleDeleteExpense = (expense: Expense) => {
-    Alert.alert('Delete expense?', `"${expense.title}" will be permanently removed.`, [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => deleteExpense(expense.id) },
-    ]);
+    deleteExpense(expense.id);
+    showUndoToast(`Deleted "${expense.title}"`, () => restoreExpense(expense));
   };
 
   return (
@@ -55,10 +56,11 @@ export const ExpensesScreen: React.FC = () => {
         subtitle="Manage personal expenses"
       />
 
-      <FlatList
-        data={filteredExpenses}
+      <SectionList
+        sections={sections}
         keyExtractor={item => item.id}
         showsVerticalScrollIndicator={false}
+        stickySectionHeadersEnabled={false}
         ListHeaderComponent={
           <>
             <BudgetOverviewCard />
@@ -92,32 +94,32 @@ export const ExpensesScreen: React.FC = () => {
             </View>
           </>
         }
-        renderItem={({ item }) => (
-          <ExpenseItemRow
-            expense={item}
-            onDelete={handleDeleteExpense}
-          />
-        )}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>💳</Text>
-            <Text style={styles.emptyTitle}>No transactions found</Text>
-            <Text style={styles.emptySubtitle}>
-              Tap the "+" button below to log your first expense.
-            </Text>
+        renderSectionHeader={({ section }) => (
+          <View style={styles.dayHeader}>
+            <Text style={styles.dayTitle}>{section.title}</Text>
+            <Text style={styles.dayTotal}>-{formatAmount(section.total)}</Text>
           </View>
+        )}
+        renderItem={({ item }) => (
+          <SwipeToDelete onDelete={() => handleDeleteExpense(item)}>
+            <ExpenseItemRow expense={item} onDelete={handleDeleteExpense} />
+          </SwipeToDelete>
+        )}
+        ItemSeparatorComponent={RowSeparator}
+        ListEmptyComponent={
+          <EmptyState
+            icon="receipt"
+            title="No transactions found"
+            subtitle={'Tap the "+" button below to log your first expense.'}
+          />
         }
         contentContainerStyle={styles.listContent}
       />
 
-      {/* Floating Add Expense Button */}
-      <TouchableOpacity
-        activeOpacity={0.8}
+      <FloatingActionButton
         onPress={() => setModalVisible(true)}
-        style={styles.floatingButton}
-      >
-        <Text style={styles.floatingButtonText}>＋</Text>
-      </TouchableOpacity>
+        accessibilityLabel="Add expense"
+      />
 
       <ExpenseFormModal
         visible={modalVisible}
@@ -126,6 +128,8 @@ export const ExpensesScreen: React.FC = () => {
     </View>
   );
 };
+
+const RowSeparator: React.FC = () => <View style={styles.separator} />;
 
 const styles = StyleSheet.create({
   container: {
@@ -149,42 +153,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: THEME.spacing.lg,
     paddingBottom: THEME.spacing.sm,
   },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: THEME.spacing.xl,
+  dayHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    paddingHorizontal: THEME.spacing.lg,
+    paddingTop: THEME.spacing.lg,
+    paddingBottom: THEME.spacing.sm,
   },
-  emptyIcon: {
-    fontSize: 40,
-    marginBottom: 12,
+  dayTitle: {
+    ...THEME.typography.captionBold,
+    color: THEME.colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  emptyTitle: {
-    ...THEME.typography.titleSmall,
-    color: THEME.colors.textPrimary,
-    marginBottom: 4,
+  dayTotal: {
+    ...THEME.typography.captionBold,
+    color: THEME.colors.textSecondary,
   },
-  emptySubtitle: {
-    ...THEME.typography.body,
-    color: THEME.colors.textMuted,
-    textAlign: 'center',
-  },
-  floatingButton: {
-    position: 'absolute',
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: THEME.colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...THEME.shadows.floating,
-  },
-  floatingButtonText: {
-    color: '#FFFFFF',
-    fontSize: 28,
-    lineHeight: 32,
-    fontWeight: '600',
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: THEME.colors.surfaceBorder,
+    marginLeft: THEME.spacing.lg + 44 + THEME.spacing.md,
   },
 });

@@ -11,34 +11,31 @@ import {
   Header,
   CustomModal,
   Button,
+  EmptyState,
   ErrorBanner,
   FormInput,
   FormLabel,
+  Icon,
 } from '../components/common';
 import { ShoppingListCard, AddListModal } from '../components/shopping';
 import { THEME } from '../constants';
 import { useShoppingList } from '../context';
 import { ShoppingList } from '../types';
-import { ShoppingListDetailScreen } from './ShoppingListDetailScreen';
+import { ShoppingStackScreenProps } from '../navigation/types';
 
-export const ShoppingListsScreen: React.FC = () => {
+export const ShoppingListsScreen: React.FC<ShoppingStackScreenProps<'ShoppingLists'>> = ({
+  navigation,
+}) => {
   const { lists, deleteList, joinListByCode } = useShoppingList();
 
-  const [activeListId, setActiveListId] = useState<string | null>(null);
   const [addListVisible, setAddListVisible] = useState(false);
   const [joinModalVisible, setJoinModalVisible] = useState(false);
   const [joinCodeInput, setJoinCodeInput] = useState('');
   const [joinError, setJoinError] = useState('');
 
-  // If a list is selected, show detail view
-  if (activeListId) {
-    return (
-      <ShoppingListDetailScreen
-        listId={activeListId}
-        onBack={() => setActiveListId(null)}
-      />
-    );
-  }
+  const openList = (listId: string) => {
+    navigation.navigate('ShoppingListDetail', { listId });
+  };
 
   const handleDeleteList = (list: ShoppingList) => {
     Alert.alert(
@@ -86,7 +83,7 @@ export const ShoppingListsScreen: React.FC = () => {
                 onPress={() => setAddListVisible(true)}
                 style={styles.actionBtnPrimary}
               >
-                <Text style={styles.actionBtnPrimaryIcon}>＋</Text>
+                <Icon name="plus" size={18} color={THEME.colors.textInverse} strokeWidth={2.5} />
                 <Text style={styles.actionBtnPrimaryText}>New List</Text>
               </TouchableOpacity>
 
@@ -98,7 +95,7 @@ export const ShoppingListsScreen: React.FC = () => {
                 }}
                 style={styles.actionBtnSecondary}
               >
-                <Text style={styles.actionBtnSecondaryIcon}>🔗</Text>
+                <Icon name="link" size={16} color={THEME.colors.textPrimary} />
                 <Text style={styles.actionBtnSecondaryText}>Join via Code</Text>
               </TouchableOpacity>
             </View>
@@ -111,18 +108,16 @@ export const ShoppingListsScreen: React.FC = () => {
         renderItem={({ item }) => (
           <ShoppingListCard
             list={item}
-            onPress={list => setActiveListId(list.id)}
+            onPress={list => openList(list.id)}
             onDelete={handleDeleteList}
           />
         )}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>🛒</Text>
-            <Text style={styles.emptyTitle}>No shopping lists yet</Text>
-            <Text style={styles.emptySubtitle}>
-              Create a new shopping list or join one with a share code.
-            </Text>
-          </View>
+          <EmptyState
+            icon="cart"
+            title="No shopping lists yet"
+            subtitle="Create a new shopping list or join one with a share code."
+          />
         }
         contentContainerStyle={styles.listContent}
       />
@@ -131,7 +126,7 @@ export const ShoppingListsScreen: React.FC = () => {
       <AddListModal
         visible={addListVisible}
         onClose={() => setAddListVisible(false)}
-        onListCreated={id => setActiveListId(id)}
+        onListCreated={openList}
       />
 
       {/* Join List Modal */}
@@ -198,11 +193,6 @@ const styles = StyleSheet.create({
     gap: 6,
     ...THEME.shadows.card,
   },
-  actionBtnPrimaryIcon: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-  },
   actionBtnPrimaryText: {
     color: '#FFFFFF',
     fontWeight: '700',
@@ -220,9 +210,6 @@ const styles = StyleSheet.create({
     borderRadius: THEME.borderRadius.md,
     gap: 6,
   },
-  actionBtnSecondaryIcon: {
-    fontSize: 14,
-  },
   actionBtnSecondaryText: {
     color: THEME.colors.textPrimary,
     fontWeight: '600',
@@ -233,26 +220,6 @@ const styles = StyleSheet.create({
     color: THEME.colors.textPrimary,
     marginHorizontal: THEME.spacing.lg,
     marginBottom: THEME.spacing.sm,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 48,
-    paddingHorizontal: THEME.spacing.xl,
-  },
-  emptyIcon: {
-    fontSize: 40,
-    marginBottom: 12,
-  },
-  emptyTitle: {
-    ...THEME.typography.titleSmall,
-    color: THEME.colors.textPrimary,
-    marginBottom: 4,
-  },
-  emptySubtitle: {
-    ...THEME.typography.body,
-    color: THEME.colors.textMuted,
-    textAlign: 'center',
   },
   joinModalContent: {
     paddingBottom: THEME.spacing.md,

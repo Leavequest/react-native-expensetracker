@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Avatar, Button, CustomModal } from '../../components/common';
+import { Avatar, Button, CustomModal, Icon } from '../../components/common';
 import { THEME } from '../../constants';
 import { useRemoveHouseholdMember, useUser } from '../../context';
 import { UserProfile } from '../../types';
@@ -34,7 +34,7 @@ export const DeleteMemberModal: React.FC<DeleteMemberModalProps> = ({ member, on
           {isLastMember ? (
             <View>
               <View style={styles.warningBox}>
-                <Text style={styles.warningIcon}>⚠️</Text>
+                <Icon name="warning" size={20} color={THEME.colors.danger} />
                 <View style={styles.warningTextWrapper}>
                   <Text style={styles.warningTitle}>Cannot Delete Member</Text>
                   <Text style={styles.warningText}>
@@ -72,8 +72,9 @@ export const DeleteMemberModal: React.FC<DeleteMemberModalProps> = ({ member, on
 
               {member.id === activeUser.id ? (
                 <View style={styles.noticeBox}>
+                  <Icon name="info" size={16} color="#92400E" />
                   <Text style={styles.noticeText}>
-                    ℹ️ This member is currently active. Deleting it will automatically switch
+                    This member is currently active. Deleting it will automatically switch
                     the active profile to another household member.
                   </Text>
                 </View>
@@ -142,12 +143,15 @@ const styles = StyleSheet.create({
     color: THEME.colors.textPrimary,
   },
   noticeBox: {
+    flexDirection: 'row',
+    gap: 8,
     backgroundColor: THEME.colors.warningLight,
     padding: 10,
     borderRadius: THEME.borderRadius.sm,
     marginBottom: 12,
   },
   noticeText: {
+    flex: 1,
     fontSize: 12,
     color: '#92400E',
     lineHeight: 16,
@@ -161,9 +165,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     gap: 10,
     alignItems: 'flex-start',
-  },
-  warningIcon: {
-    fontSize: 20,
   },
   warningTextWrapper: {
     flex: 1,

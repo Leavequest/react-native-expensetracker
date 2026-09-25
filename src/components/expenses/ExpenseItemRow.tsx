@@ -1,13 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Expense } from '../../types';
-import { EXPENSE_CATEGORIES, THEME } from '../../constants';
+import { getCategoryInfo, THEME } from '../../constants';
 import { useUser } from '../../context';
-import { formatDateEuropean } from '../../utils';
-import { Badge } from '../common';
+import { CategoryIcon, deleteAccessibilityProps } from '../common';
 
 interface ExpenseItemRowProps {
   expense: Expense;
+  /** Exposed to screen readers as a "Delete" action (sighted users swipe) */
   onDelete?: (expense: Expense) => void;
   onPress?: (expense: Expense) => void;
 }
@@ -18,67 +18,35 @@ export const ExpenseItemRow: React.FC<ExpenseItemRowProps> = ({
   onPress,
 }) => {
   const { formatAmount } = useUser();
-
-  const categoryMeta = EXPENSE_CATEGORIES.find(
-    c => c.name === expense.category
-  ) || {
-    name: expense.category,
-    icon: '💳',
-    color: THEME.colors.primary,
-  };
+  const categoryMeta = getCategoryInfo(expense.category);
 
   return (
     <TouchableOpacity
       activeOpacity={onPress ? 0.7 : 1}
-      onPress={() => onPress && onPress(expense)}
+      onPress={onPress ? () => onPress(expense) : undefined}
       style={styles.container}
+      accessibilityLabel={`${expense.title}, ${formatAmount(expense.amount)}, ${expense.category}`}
+      {...(onDelete ? deleteAccessibilityProps(() => onDelete(expense)) : {})}
     >
-      <View
-        style={[
-          styles.iconContainer,
-          { backgroundColor: `${categoryMeta.color}18` },
-        ]}
-      >
-        <Text style={styles.iconText}>{categoryMeta.icon}</Text>
-      </View>
+      <CategoryIcon
+        name={categoryMeta.icon}
+        color={categoryMeta.color}
+        size={44}
+        style={styles.categoryIcon}
+      />
 
       <View style={styles.detailsContainer}>
         <Text numberOfLines={1} style={styles.title}>
           {expense.title}
         </Text>
-        <View style={styles.metaRow}>
-          <Text style={styles.dateText}>
-            {formatDateEuropean(expense.date)}
-          </Text>
-          <Text style={styles.metaDot}>•</Text>
-          <Badge
-            label={expense.category}
-            color={categoryMeta.color}
-            size="sm"
-          />
-        </View>
+        <Text numberOfLines={1} style={[styles.categoryText, { color: categoryMeta.color }]}>
+          {expense.category}
+        </Text>
       </View>
 
       <View style={styles.rightContainer}>
-        <Text style={styles.amountText}>
-          {formatAmount(expense.amount)}
-        </Text>
-        <View style={styles.actionsRow}>
-          <Text style={styles.paymentMethodText}>
-            {expense.paymentMethod}
-          </Text>
-          {onDelete ? (
-            <TouchableOpacity
-              activeOpacity={0.6}
-              onPress={() => onDelete(expense)}
-              style={styles.deleteButton}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              accessibilityLabel={`Delete ${expense.title}`}
-            >
-              <Text style={styles.deleteIcon}>✕</Text>
-            </TouchableOpacity>
-          ) : null}
-        </View>
+        <Text style={styles.amountText}>-{formatAmount(expense.amount)}</Text>
+        <Text style={styles.paymentMethodText}>{expense.paymentMethod}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -91,19 +59,9 @@ const styles = StyleSheet.create({
     paddingVertical: THEME.spacing.md,
     paddingHorizontal: THEME.spacing.lg,
     backgroundColor: THEME.colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: THEME.colors.surfaceBorder,
   },
-  iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
+  categoryIcon: {
     marginRight: THEME.spacing.md,
-  },
-  iconText: {
-    fontSize: 20,
   },
   detailsContainer: {
     flex: 1,
@@ -112,20 +70,10 @@ const styles = StyleSheet.create({
   title: {
     ...THEME.typography.titleSmall,
     color: THEME.colors.textPrimary,
-    marginBottom: 4,
+    marginBottom: 2,
   },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  dateText: {
-    ...THEME.typography.caption,
-    color: THEME.colors.textMuted,
-  },
-  metaDot: {
-    color: THEME.colors.textMuted,
-    fontSize: 10,
+  categoryText: {
+    ...THEME.typography.captionBold,
   },
   rightContainer: {
     alignItems: 'flex-end',
@@ -135,24 +83,11 @@ const styles = StyleSheet.create({
     ...THEME.typography.titleSmall,
     color: THEME.colors.textPrimary,
     fontWeight: '700',
-    marginBottom: 4,
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    marginBottom: 2,
   },
   paymentMethodText: {
     ...THEME.typography.caption,
-    color: THEME.colors.textSecondary,
-    fontSize: 11,
-  },
-  deleteButton: {
-    padding: 2,
-  },
-  deleteIcon: {
-    fontSize: 12,
     color: THEME.colors.textMuted,
-    fontWeight: 'bold',
+    fontSize: 11,
   },
 });

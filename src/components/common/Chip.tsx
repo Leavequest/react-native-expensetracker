@@ -4,14 +4,16 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  View,
   ViewStyle,
 } from 'react-native';
 import { THEME } from '../../constants';
+import { Icon, IconName } from './Icon';
 
 interface ChipProps {
   label: string;
   onPress: () => void;
-  icon?: string;
+  icon?: IconName;
   selected?: boolean;
   /** Background/border colour when selected (defaults to the primary colour) */
   selectedColor?: string;
@@ -38,7 +40,15 @@ export const Chip: React.FC<ChipProps> = ({
       style,
     ]}
   >
-    {icon ? <Text style={styles.icon}>{icon}</Text> : null}
+    {icon ? (
+      <View style={styles.icon}>
+        <Icon
+          name={icon}
+          size={14}
+          color={selected ? THEME.colors.textInverse : selectedColor}
+        />
+      </View>
+    ) : null}
     <Text style={[styles.text, selected && styles.textSelected]}>{label}</Text>
   </TouchableOpacity>
 );
@@ -77,7 +87,6 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginRight: 6,
-    fontSize: 14,
   },
   text: {
     fontSize: 13,

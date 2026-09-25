@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import {
   Button,
   Chip,
@@ -9,10 +9,11 @@ import {
   FormInput,
   FormLabel,
 } from '../common';
-import { EXPENSE_CATEGORIES, PAYMENT_METHODS, THEME } from '../../constants';
+import { PAYMENT_METHODS, THEME } from '../../constants';
 import { ExpenseCategory, PaymentMethod } from '../../types';
 import { useExpense, useUser } from '../../context';
 import { getCurrencySymbol, parseCurrencyInput } from '../../utils';
+import { CategoryGrid } from './CategoryGrid';
 
 interface ExpenseFormModalProps {
   visible: boolean;
@@ -52,14 +53,14 @@ export const ExpenseFormModal: React.FC<ExpenseFormModalProps> = ({
   };
 
   const handleSubmit = () => {
-    if (!title.trim()) {
-      setError('Please enter a description or store name.');
-      return;
-    }
-
     const parsedAmount = parseCurrencyInput(amountInput);
     if (parsedAmount <= 0) {
       setError('Please enter a valid amount greater than 0.');
+      return;
+    }
+
+    if (!title.trim()) {
+      setError('Please enter a description or store name.');
       return;
     }
 
@@ -83,113 +84,100 @@ export const ExpenseFormModal: React.FC<ExpenseFormModalProps> = ({
       title="Add New Expense"
       subtitle="Log a transaction in your monthly budget"
     >
-      <ScrollView showsVerticalScrollIndicator={false} style={styles.formContainer}>
-        <ErrorBanner message={error} />
+      <ErrorBanner message={error} />
 
-        <FormLabel>Description / Store Name</FormLabel>
+      {/* Amount first: it's the one field every expense needs */}
+      <View style={styles.amountRow}>
+        <Text style={styles.currencySymbol}>{currencySymbol}</Text>
         <FormInput
-          placeholder="e.g., Carrefour, Metro Pass, Dinner"
-          value={title}
-          onChangeText={t => {
-            setTitle(t);
+          style={styles.amountInput}
+          placeholder="0.00"
+          keyboardType="decimal-pad"
+          autoFocus
+          accessibilityLabel={`Amount in ${currency}`}
+          value={amountInput}
+          onChangeText={a => {
+            setAmountInput(a);
             setError('');
           }}
         />
+      </View>
 
-        <FormLabel>Amount ({currencySymbol})</FormLabel>
-        <View style={styles.amountInputRow}>
-          <Text style={styles.currencyPrefix}>{currencySymbol}</Text>
-          <FormInput
-            style={styles.amountInput}
-            placeholder="0.00"
-            keyboardType="decimal-pad"
-            value={amountInput}
-            onChangeText={a => {
-              setAmountInput(a);
-              setError('');
-            }}
+      <FormLabel>Category</FormLabel>
+      <CategoryGrid selected={selectedCategory} onSelect={setSelectedCategory} />
+
+      <FormLabel>Description / Store Name</FormLabel>
+      <FormInput
+        placeholder="e.g., Carrefour, Metro Pass, Dinner"
+        value={title}
+        onChangeText={t => {
+          setTitle(t);
+          setError('');
+        }}
+      />
+
+      <FormLabel>Payment Method</FormLabel>
+      <ChipRow>
+        {PAYMENT_METHODS.map(pm => (
+          <Chip
+            key={pm}
+            label={pm}
+            selected={selectedPaymentMethod === pm}
+            onPress={() => setSelectedPaymentMethod(pm)}
           />
-        </View>
+        ))}
+      </ChipRow>
 
-        <FormLabel>Category</FormLabel>
-        <ChipRow>
-          {EXPENSE_CATEGORIES.map(cat => (
-            <Chip
-              key={cat.name}
-              label={cat.name}
-              icon={cat.icon}
-              selected={selectedCategory === cat.name}
-              selectedColor={cat.color}
-              onPress={() => setSelectedCategory(cat.name)}
-            />
-          ))}
-        </ChipRow>
+      <FormLabel>Notes (Optional)</FormLabel>
+      <FormInput
+        style={styles.notesInput}
+        placeholder="Add optional notes..."
+        value={notes}
+        onChangeText={setNotes}
+        multiline
+      />
 
-        <FormLabel>Payment Method</FormLabel>
-        <ChipRow>
-          {PAYMENT_METHODS.map(pm => (
-            <Chip
-              key={pm}
-              label={pm}
-              selected={selectedPaymentMethod === pm}
-              onPress={() => setSelectedPaymentMethod(pm)}
-            />
-          ))}
-        </ChipRow>
-
-        <FormLabel>Notes (Optional)</FormLabel>
-        <FormInput
-          style={styles.notesInput}
-          placeholder="Add optional notes..."
-          value={notes}
-          onChangeText={setNotes}
-          multiline
-        />
-
-        <View style={styles.actionsContainer}>
-          <Button
-            title="Add Expense"
-            onPress={handleSubmit}
-            size="lg"
-            style={styles.submitButton}
-          />
-        </View>
-      </ScrollView>
+      <Button
+        title="Add Expense"
+        onPress={handleSubmit}
+        size="lg"
+        style={styles.submitButton}
+      />
     </CustomModal>
   );
 };
 
 const styles = StyleSheet.create({
-  formContainer: {
-    maxHeight: 500,
-  },
-  amountInputRow: {
+  amountRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: THEME.spacing.sm,
   },
-  currencyPrefix: {
-    position: 'absolute',
-    left: 14,
-    zIndex: 1,
-    fontSize: 18,
+  currencySymbol: {
+    fontSize: 32,
     fontWeight: '700',
     color: THEME.colors.textSecondary,
+    marginRight: THEME.spacing.sm,
   },
   amountInput: {
-    flex: 1,
-    paddingLeft: 34,
-    fontSize: 18,
-    fontWeight: '700',
+    minWidth: 160,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    borderBottomWidth: 2,
+    borderBottomColor: THEME.colors.primary,
+    borderRadius: 0,
+    fontSize: 40,
+    fontWeight: '800',
+    textAlign: 'center',
+    paddingVertical: THEME.spacing.xs,
   },
   notesInput: {
     height: 70,
     textAlignVertical: 'top',
   },
-  actionsContainer: {
-    marginTop: THEME.spacing.xl,
-    marginBottom: THEME.spacing.md,
-  },
   submitButton: {
     width: '100%',
+    marginTop: THEME.spacing.xl,
   },
 });

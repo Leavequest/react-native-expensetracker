@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Avatar } from '../../components/common';
+import { Avatar, Icon } from '../../components/common';
 import { THEME } from '../../constants';
 import { useUser } from '../../context';
 import { UserProfile } from '../../types';
@@ -53,7 +53,7 @@ export const HouseholdSection: React.FC = () => {
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 accessibilityLabel={`Delete ${user.name}`}
               >
-                <Text style={styles.deleteUserIcon}>X</Text>
+                <Icon name="close" size={16} color={THEME.colors.textSecondary} />
               </TouchableOpacity>
             </View>
           );
@@ -65,7 +65,8 @@ export const HouseholdSection: React.FC = () => {
         onPress={() => setAddMemberVisible(true)}
         style={styles.addMemberBtn}
       >
-        <Text style={styles.addMemberBtnText}>＋ Add Household Member</Text>
+        <Icon name="plus" size={16} color={THEME.colors.primary} strokeWidth={2.5} />
+        <Text style={styles.addMemberBtnText}>Add Household Member</Text>
       </TouchableOpacity>
 
       <AddMemberModal visible={addMemberVisible} onClose={() => setAddMemberVisible(false)} />
@@ -135,12 +136,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: THEME.colors.surfaceBorder,
   },
-  deleteUserIcon: {
-    fontSize: 15,
-  },
   addMemberBtn: {
     marginTop: THEME.spacing.md,
     flexDirection: 'row',
+    gap: 6,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,

@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { THEME } from '../../constants';
+import { Icon, IconName } from './Icon';
 
 interface BadgeProps {
   label: string;
-  icon?: string;
+  icon?: IconName;
   color?: string;
   backgroundColor?: string;
   size?: 'sm' | 'md';
@@ -36,9 +37,9 @@ export const Badge: React.FC<BadgeProps> = ({
       ]}
     >
       {icon ? (
-        <Text style={[styles.icon, isSm ? styles.iconSm : styles.iconMd]}>
-          {icon}{' '}
-        </Text>
+        <View style={styles.icon}>
+          <Icon name={icon} size={isSm ? 11 : 13} color={resolvedColor} />
+        </View>
       ) : null}
       <Text
         numberOfLines={1}
@@ -71,13 +72,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   icon: {
-    marginRight: 2,
-  },
-  iconSm: {
-    fontSize: 10,
-  },
-  iconMd: {
-    fontSize: 12,
+    marginRight: 4,
   },
   text: {
     fontWeight: '600',

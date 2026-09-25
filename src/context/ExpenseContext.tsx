@@ -30,6 +30,8 @@ interface ExpenseContextType {
   addExpense: (expense: Omit<Expense, 'id'>) => Expense;
   updateExpense: (id: string, updates: Partial<Expense>) => void;
   deleteExpense: (id: string) => void;
+  /** Puts back a deleted expense (used by Undo). No-op if it still exists. */
+  restoreExpense: (expense: Expense) => void;
   setTotalBudget: (amount: number) => void;
   setCategoryBudget: (category: ExpenseCategory, limit: number) => void;
   resetExpensesToDefault: () => void;
@@ -106,6 +108,10 @@ export const ExpenseProvider: React.FC<ExpenseProviderProps> = ({ children, init
     setExpenses(prev => prev.filter(exp => exp.id !== id));
   }, []);
 
+  const restoreExpense = useCallback((expense: Expense) => {
+    setExpenses(prev => (prev.some(e => e.id === expense.id) ? prev : [expense, ...prev]));
+  }, []);
+
   const setTotalBudget = useCallback((amount: number) => {
     setBudget(prev => ({ ...prev, totalLimit: amount }));
   }, []);
@@ -134,6 +140,7 @@ export const ExpenseProvider: React.FC<ExpenseProviderProps> = ({ children, init
       addExpense,
       updateExpense,
       deleteExpense,
+      restoreExpense,
       setTotalBudget,
       setCategoryBudget,
       resetExpensesToDefault,
@@ -149,6 +156,7 @@ export const ExpenseProvider: React.FC<ExpenseProviderProps> = ({ children, init
       addExpense,
       updateExpense,
       deleteExpense,
+      restoreExpense,
       setTotalBudget,
       setCategoryBudget,
       resetExpensesToDefault,
