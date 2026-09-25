@@ -161,13 +161,15 @@ export const ShoppingListDetailScreen: React.FC<ShoppingListDetailScreenProps> =
           />
 
           {/* Finish Shopping Button */}
-          <Button
-            title={`Finish Shopping Trip (${formatAmount(completedTotal > 0 ? completedTotal : totalEstimated)})`}
-            onPress={handleFinishTrip}
-            variant="primary"
-            size="md"
-            style={styles.finishBtn}
-          />
+          {totalItems > 0 && (
+            <Button
+              title={`Finish Shopping Trip (${formatAmount(completedTotal > 0 ? completedTotal : totalEstimated)})`}
+              onPress={handleFinishTrip}
+              variant="primary"
+              size="md"
+              style={styles.finishBtn}
+            />
+          )}
         </View>
 
         {/* Items Grouped by Aisle */}

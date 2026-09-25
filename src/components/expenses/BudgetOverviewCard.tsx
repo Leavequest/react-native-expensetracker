@@ -27,7 +27,7 @@ export const BudgetOverviewCard: React.FC = () => {
         </View>
         <View style={styles.percentBadge}>
           <Text style={[styles.percentText, { color: getProgressColor() }]}>
-            {budgetUsagePercent}% spent
+            {budget.totalLimit > 0 ? `${budgetUsagePercent}% spent` : 'No budget set'}
           </Text>
         </View>
       </View>
@@ -44,10 +44,17 @@ export const BudgetOverviewCard: React.FC = () => {
           <Text
             style={[
               styles.remainingAmount,
-              { color: budgetRemaining === 0 ? THEME.colors.danger : THEME.colors.primaryDark },
+              {
+                color:
+                  budget.totalLimit <= 0
+                    ? THEME.colors.textMuted
+                    : totalSpentThisMonth > budget.totalLimit
+                    ? THEME.colors.danger
+                    : THEME.colors.primaryDark,
+              },
             ]}
           >
-            {formatAmount(budgetRemaining)}
+            {budget.totalLimit <= 0 ? '—' : formatAmount(budgetRemaining)}
           </Text>
         </View>
       </View>
@@ -61,12 +68,17 @@ export const BudgetOverviewCard: React.FC = () => {
 
       <View style={styles.footerRow}>
         <Text style={styles.limitText}>
-          Budget Limit: <Text style={styles.limitBold}>{formatAmount(budget.totalLimit)}</Text>
+          Budget Limit:{' '}
+          <Text style={styles.limitBold}>
+            {budget.totalLimit > 0 ? formatAmount(budget.totalLimit) : 'Not set'}
+          </Text>
         </Text>
-        {budgetRemaining > 0 ? (
-          <Text style={styles.statusGood}>On track</Text>
-        ) : (
+        {budget.totalLimit <= 0 ? (
+          <Text style={styles.statusNoBudget}>No limit set</Text>
+        ) : totalSpentThisMonth > budget.totalLimit ? (
           <Text style={styles.statusExceeded}>Limit exceeded!</Text>
+        ) : (
+          <Text style={styles.statusGood}>On track</Text>
         )}
       </View>
     </Card>
@@ -154,6 +166,10 @@ const styles = StyleSheet.create({
   statusGood: {
     ...THEME.typography.captionBold,
     color: THEME.colors.success,
+  },
+  statusNoBudget: {
+    ...THEME.typography.captionBold,
+    color: THEME.colors.textMuted,
   },
   statusExceeded: {
     ...THEME.typography.captionBold,

@@ -88,7 +88,9 @@ export const AnalyticsScreen: React.FC = () => {
             <View style={styles.statRight}>
               <Text style={styles.statLabel}>Category Limit</Text>
               <Text style={styles.statValue}>
-                {formatAmount(budget.categoryLimits.Groceries || 600)}
+                {budget.categoryLimits?.Groceries
+                  ? formatAmount(budget.categoryLimits.Groceries)
+                  : 'Not set'}
               </Text>
             </View>
           </View>

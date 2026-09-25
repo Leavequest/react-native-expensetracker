@@ -24,7 +24,7 @@ const TestShoppingConsumer: React.FC<{
 };
 
 describe('ShoppingListContext', () => {
-  it('provides initial shopping lists with items and stores', async () => {
+  it('provides empty initial shopping lists', async () => {
     let captured:
       | {
           shopping: ReturnType<typeof useShoppingList>;
@@ -45,8 +45,7 @@ describe('ShoppingListContext', () => {
     });
 
     expect(captured).toBeDefined();
-    expect(captured!.shopping.lists.length).toBeGreaterThan(0);
-    expect(captured!.shopping.lists[0].storeName).toBe('Lidl');
+    expect(captured!.shopping.lists.length).toBe(0);
   });
 
   it('adds an item, toggles completion, and finishes trip recording expense', async () => {
@@ -69,7 +68,15 @@ describe('ShoppingListContext', () => {
       );
     });
 
-    const targetList = captured!.shopping.lists[0];
+    let targetListId = '';
+    await ReactTestRenderer.act(() => {
+      const created = captured!.shopping.createList('Weekly Lidl Grocery Run', 'Lidl');
+      targetListId = created.id;
+    });
+
+    expect(captured!.shopping.lists.length).toBe(1);
+    const targetList = captured!.shopping.lists.find(l => l.id === targetListId)!;
+    expect(targetList.storeName).toBe('Lidl');
     const initialExpensesCount = captured!.expense.expenses.length;
 
     let newItemId = '';

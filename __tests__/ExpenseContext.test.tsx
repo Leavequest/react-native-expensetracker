@@ -29,9 +29,9 @@ describe('ExpenseContext', () => {
     });
 
     expect(capturedState).toBeDefined();
-    expect(capturedState!.expenses.length).toBeGreaterThan(0);
-    expect(capturedState!.budget.totalLimit).toBe(2400);
-    expect(capturedState!.budgetRemaining).toBeGreaterThanOrEqual(0);
+    expect(capturedState!.expenses.length).toBe(0);
+    expect(capturedState!.budget.totalLimit).toBe(0);
+    expect(capturedState!.budgetRemaining).toBe(0);
   });
 
   it('allows adding and deleting an expense', async () => {
