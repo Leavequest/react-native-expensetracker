@@ -46,17 +46,23 @@ export const CustomModal: React.FC<CustomModalProps> = ({
   const sheetRef = useRef<BottomSheetModal>(null);
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
+  // Calling dismiss() on a sheet that isn't open leaves it stuck "dismissing",
+  // and the library then ignores every later present()
+  const isOpen = useRef(false);
 
   useEffect(() => {
     if (visible) {
+      isOpen.current = true;
       sheetRef.current?.present();
-    } else {
+    } else if (isOpen.current) {
+      isOpen.current = false;
       sheetRef.current?.dismiss();
     }
   }, [visible]);
 
   // Fires for every way the sheet can close (drag, backdrop, back button, programmatic)
   const handleDismiss = useCallback(() => {
+    isOpen.current = false;
     if (visible) onClose();
     onDismissed?.();
   }, [visible, onClose, onDismissed]);
