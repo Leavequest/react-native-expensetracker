@@ -60,6 +60,30 @@ describe('persistence', () => {
     });
   });
 
+  it('fills in member defaults for data saved before roles existed', async () => {
+    await storage.setItem(
+      'user',
+      JSON.stringify({
+        version: 1,
+        data: {
+          users: [
+            { id: 'u1', name: 'You', initials: 'YO', avatarColor: '#059669', email: 'a@example.com', isCurrentUser: true },
+            { id: 'u2', name: 'Maria', initials: 'MA', avatarColor: '#8B5CF6', email: 'm@example.com', isCurrentUser: false },
+          ],
+          activeUserId: 'u1',
+          currency: 'EUR',
+        },
+      })
+    );
+
+    const state = await loadAppState();
+    expect(state.user?.users.map(u => [u.role, u.origin, u.status])).toEqual([
+      ['owner', 'local', 'active'],
+      ['member', 'local', 'active'],
+    ]);
+    expect(state.user?.activeUserId).toBe('u1');
+  });
+
   it('providers start from saved state and save their changes', async () => {
     let captured: ReturnType<typeof useExpense> | undefined;
     const Consumer = () => {

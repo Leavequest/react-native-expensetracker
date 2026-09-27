@@ -10,6 +10,9 @@ export const INITIAL_USERS: UserProfile[] = [
     avatarColor: '#059669',
     email: 'user@example.com',
     isCurrentUser: true,
+    role: 'owner',
+    origin: 'local',
+    status: 'active',
   },
 ];
 

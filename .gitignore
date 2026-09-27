@@ -98,6 +98,7 @@ yarn-error.log
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+docs/
 
 # Editors
 .vscode/

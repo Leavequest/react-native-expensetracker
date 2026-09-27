@@ -83,6 +83,27 @@ describe('UserContext', () => {
     expect(captured!.activeUser.id).toBe('u1');
   });
 
+  it('starts with an owner and gives new members local/active defaults', async () => {
+    let captured: ReturnType<typeof useUser> | undefined;
+
+    await ReactTestRenderer.act(() => {
+      ReactTestRenderer.create(
+        <UserProvider>
+          <TestUserConsumer onState={s => (captured = s)} />
+        </UserProvider>
+      );
+    });
+
+    expect(captured!.activeUser.role).toBe('owner');
+
+    await ReactTestRenderer.act(() => {
+      captured!.addUser('Elena');
+    });
+
+    const elena = captured!.householdUsers[1];
+    expect([elena.role, elena.origin, elena.status]).toEqual(['member', 'local', 'active']);
+  });
+
   it('switches active user automatically when active user is deleted', async () => {
     let captured: ReturnType<typeof useUser> | undefined;
 

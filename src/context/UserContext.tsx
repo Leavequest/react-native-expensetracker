@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import { CurrencyCode, UserProfile } from '../types';
 import { DEFAULT_CURRENCY, INITIAL_USERS } from '../constants';
-import { formatCurrency, generateId } from '../utils';
+import { AVATAR_COLORS, formatCurrency, generateId, getInitials } from '../utils';
 import { PersistedUserState, saveSlice } from '../storage/persistence';
 
 interface UserContextType {
@@ -22,20 +22,6 @@ interface UserContextType {
   updateUser: (id: string, updates: Partial<UserProfile>) => void;
   deleteUser: (userId: string) => void;
   formatAmount: (amount: number) => string;
-}
-
-const AVATAR_COLORS = ['#059669', '#8B5CF6', '#F59E0B', '#3B82F6', '#EC4899', '#10B981'];
-
-function getInitials(name: string): string {
-  return (
-    name
-      .trim()
-      .split(/\s+/)
-      .map(part => part[0] ?? '')
-      .join('')
-      .substring(0, 2)
-      .toUpperCase() || 'U'
-  );
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -80,11 +66,14 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children, initialSta
         id: generateId('u'),
         name: trimmedName,
         initials: getInitials(trimmedName),
-        avatarColor: AVATAR_COLORS[users.length % AVATAR_COLORS.length],
+        avatarColor: AVATAR_COLORS[users.length % AVATAR_COLORS.length].color,
         email:
           email?.trim() ||
           `${trimmedName.toLowerCase().replace(/\s+/g, '')}@example.com`,
         isCurrentUser: false,
+        role: 'member',
+        origin: 'local',
+        status: 'active',
       };
       setUsers(prev => [...prev, newUser]);
       return newUser;

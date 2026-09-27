@@ -8,6 +8,7 @@ export * from './UserContext';
 export * from './ExpenseContext';
 export * from './ShoppingListContext';
 export * from './useRemoveHouseholdMember';
+export * from './usePermission';
 
 interface AppProvidersProps {
   children: ReactNode;

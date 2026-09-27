@@ -6,6 +6,7 @@ import {
   ShoppingList,
   UserProfile,
 } from '../types';
+import { withMemberDefaults } from '../utils/members';
 
 const storage = createAsyncStorage('finance-manager');
 
@@ -68,7 +69,8 @@ function parseUser(raw: string | null | undefined): PersistedUserState | undefin
   ) {
     return undefined;
   }
-  return data as unknown as PersistedUserState;
+  const state = data as unknown as PersistedUserState;
+  return { ...state, users: withMemberDefaults(state.users) };
 }
 
 function parseExpenses(raw: string | null | undefined): PersistedExpenseState | undefined {
