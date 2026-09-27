@@ -6,7 +6,7 @@ import { useUser } from '../../context';
 import { UserProfile } from '../../types';
 import { SettingsSection } from './SettingsSection';
 import { AddMemberModal } from './AddMemberModal';
-import { DeleteMemberModal } from './DeleteMemberModal';
+import { DeleteMemberModal } from '../../components/account/DeleteMemberModal';
 
 export const HouseholdSection: React.FC = () => {
   const { activeUser, householdUsers, setActiveUser } = useUser();

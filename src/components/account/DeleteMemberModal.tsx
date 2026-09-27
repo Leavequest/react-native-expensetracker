@@ -1,8 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Avatar, Button, CustomModal, Icon } from '../../components/common';
+import { Avatar, Button, CustomModal, Icon } from '../common';
 import { THEME } from '../../constants';
-import { useRemoveHouseholdMember, useUser } from '../../context';
+import { usePermission, useRemoveHouseholdMember, useUser } from '../../context';
 import { UserProfile } from '../../types';
 
 interface DeleteMemberModalProps {
@@ -15,8 +15,10 @@ export const DeleteMemberModal: React.FC<DeleteMemberModalProps> = ({ member, on
   const { activeUser, householdUsers } = useUser();
   const removeMember = useRemoveHouseholdMember();
 
+  const canRemove = usePermission('removeMember').allowed;
+
   const handleConfirm = () => {
-    if (member) removeMember(member.id);
+    if (member && canRemove) removeMember(member.id);
     onClose();
   };
 

@@ -12,4 +12,6 @@ export * from './ProgressBar';
 export * from './Header';
 export * from './CustomModal';
 export * from './SwipeToDelete';
+export * from './SettingsGroup';
+export * from './SettingsRow';
 export * from './toast';

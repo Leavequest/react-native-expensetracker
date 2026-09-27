@@ -26,3 +26,13 @@ jest.mock(
 
 // Sheets render their content inline under Jest
 jest.mock('@gorhom/bottom-sheet', () => require('@gorhom/bottom-sheet/mock'));
+
+// Toasts are asserted through these mocks (`import { toast } from 'sonner-native'` in a test)
+jest.mock('sonner-native', () => {
+  const toast = Object.assign(jest.fn(() => 'toast-id'), {
+    success: jest.fn(),
+    error: jest.fn(),
+    dismiss: jest.fn(),
+  });
+  return { toast, Toaster: () => null };
+});

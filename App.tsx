@@ -7,11 +7,18 @@
 import React from 'react';
 import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { DefaultTheme, NavigationContainer, Theme } from '@react-navigation/native';
+import {
+  DefaultTheme,
+  NavigationContainer,
+  Theme,
+  createNavigationContainerRef,
+} from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { Toaster } from 'sonner-native';
 import { AppProviders } from './src/context';
+import { AccountSheetProvider } from './src/components/account';
+import { RootTabParamList } from './src/navigation/types';
 import { TabNavigator } from './src/navigation/TabNavigator';
 import { THEME } from './src/constants';
 
@@ -28,6 +35,13 @@ const NAVIGATION_THEME: Theme = {
   },
 };
 
+const navigationRef = createNavigationContainerRef<RootTabParamList>();
+
+// Used by the account sheet's "Manage household" row
+function openSettings() {
+  if (navigationRef.isReady()) navigationRef.navigate('Settings');
+}
+
 function LoadingScreen() {
   return (
     <View style={styles.loadingContainer}>
@@ -42,9 +56,11 @@ function App(): React.JSX.Element {
       <SafeAreaProvider>
         <StatusBar barStyle="dark-content" />
         <AppProviders fallback={<LoadingScreen />}>
-          <NavigationContainer theme={NAVIGATION_THEME}>
+          <NavigationContainer ref={navigationRef} theme={NAVIGATION_THEME}>
             <BottomSheetModalProvider>
-              <TabNavigator />
+              <AccountSheetProvider onManageHousehold={openSettings}>
+                <TabNavigator />
+              </AccountSheetProvider>
             </BottomSheetModalProvider>
           </NavigationContainer>
         </AppProviders>

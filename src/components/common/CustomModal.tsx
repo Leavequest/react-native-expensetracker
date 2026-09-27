@@ -17,6 +17,8 @@ interface CustomModalProps {
   title: string;
   subtitle?: string;
   children: ReactNode;
+  /** Called after the sheet has fully closed, however it was closed (e.g. to navigate afterwards) */
+  onDismissed?: () => void;
 }
 
 const renderBackdrop = (props: BottomSheetBackdropProps) => (
@@ -39,6 +41,7 @@ export const CustomModal: React.FC<CustomModalProps> = ({
   title,
   subtitle,
   children,
+  onDismissed,
 }) => {
   const sheetRef = useRef<BottomSheetModal>(null);
   const insets = useSafeAreaInsets();
@@ -55,7 +58,8 @@ export const CustomModal: React.FC<CustomModalProps> = ({
   // Fires for every way the sheet can close (drag, backdrop, back button, programmatic)
   const handleDismiss = useCallback(() => {
     if (visible) onClose();
-  }, [visible, onClose]);
+    onDismissed?.();
+  }, [visible, onClose, onDismissed]);
 
   return (
     <BottomSheetModal

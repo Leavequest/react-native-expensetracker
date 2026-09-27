@@ -1,39 +1,21 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CURRENCIES, THEME } from '../../constants';
+import { THEME } from '../../constants';
 import { useUser } from '../../context';
-import { CurrencyCode } from '../../types';
+import { useAccountSheet } from '../account/accountSheetContext';
 import { Avatar } from './Avatar';
 
 interface HeaderProps {
   title: string;
   subtitle?: string;
-  showCurrencyPill?: boolean;
-  onCurrencyPress?: () => void;
   rightAction?: React.ReactNode;
 }
 
-export const Header: React.FC<HeaderProps> = ({
-  title,
-  subtitle,
-  showCurrencyPill = true,
-  onCurrencyPress,
-  rightAction,
-}) => {
-  const { activeUser, currency, setCurrency } = useUser();
+export const Header: React.FC<HeaderProps> = ({ title, subtitle, rightAction }) => {
+  const { activeUser } = useUser();
+  const { openAccountSheet } = useAccountSheet();
   const insets = useSafeAreaInsets();
-
-  const handleCycleCurrency = () => {
-    if (onCurrencyPress) {
-      onCurrencyPress();
-      return;
-    }
-    // Cycle through all supported currencies
-    const sequence = Object.keys(CURRENCIES) as CurrencyCode[];
-    const nextIndex = (sequence.indexOf(currency) + 1) % sequence.length;
-    setCurrency(sequence[nextIndex]);
-  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + THEME.spacing.md }]}>
@@ -43,21 +25,15 @@ export const Header: React.FC<HeaderProps> = ({
       </View>
 
       <View style={styles.rightSection}>
-        {showCurrencyPill ? (
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={handleCycleCurrency}
-            style={styles.currencyPill}
-            hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-            accessibilityRole="button"
-            accessibilityLabel={`Currency ${currency}. Tap to change.`}
-          >
-            <Text style={styles.currencySymbol}>{CURRENCIES[currency].symbol}</Text>
-            <Text style={styles.currencyText}>{currency}</Text>
-          </TouchableOpacity>
-        ) : null}
-
-        <Avatar user={activeUser} size={32} style={styles.avatar} />
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={openAccountSheet}
+          style={styles.avatarButton}
+          accessibilityRole="button"
+          accessibilityLabel={`Account, ${activeUser.name}`}
+        >
+          <Avatar user={activeUser} size={32} />
+        </TouchableOpacity>
 
         {rightAction ? <View style={styles.actionWrapper}>{rightAction}</View> : null}
       </View>
@@ -93,29 +69,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  currencyPill: {
-    flexDirection: 'row',
+  // 44pt touch target around the 32pt avatar
+  avatarButton: {
+    width: 44,
+    height: 44,
     alignItems: 'center',
-    backgroundColor: THEME.colors.primaryLight,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: THEME.borderRadius.full,
-    borderWidth: 1,
-    borderColor: '#A7F3D0',
-  },
-  currencySymbol: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: THEME.colors.primaryDark,
-    marginRight: 3,
-  },
-  currencyText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: THEME.colors.primaryDark,
-  },
-  avatar: {
-    marginLeft: 4,
+    justifyContent: 'center',
   },
   actionWrapper: {
     marginLeft: 4,
