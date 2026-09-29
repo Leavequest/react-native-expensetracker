@@ -7,6 +7,7 @@ import {
   ShoppingListProvider,
   useShoppingList,
 } from '../src/context/ShoppingListContext';
+import { WalletProvider } from '../src/context/WalletContext';
 
 const TestShoppingConsumer: React.FC<{
   onState: (state: {
@@ -37,9 +38,9 @@ describe('ShoppingListContext', () => {
       ReactTestRenderer.create(
         <UserProvider>
           <ExpenseProvider>
-            <ShoppingListProvider>
+            <WalletProvider><ShoppingListProvider>
               <TestShoppingConsumer onState={s => (captured = s)} />
-            </ShoppingListProvider>
+            </ShoppingListProvider></WalletProvider>
           </ExpenseProvider>
         </UserProvider>
       );
@@ -61,9 +62,9 @@ describe('ShoppingListContext', () => {
       ReactTestRenderer.create(
         <UserProvider>
           <ExpenseProvider>
-            <ShoppingListProvider>
+            <WalletProvider><ShoppingListProvider>
               <TestShoppingConsumer onState={s => (captured = s)} />
-            </ShoppingListProvider>
+            </ShoppingListProvider></WalletProvider>
           </ExpenseProvider>
         </UserProvider>
       );
@@ -71,13 +72,14 @@ describe('ShoppingListContext', () => {
 
     let targetListId = '';
     await ReactTestRenderer.act(() => {
-      const created = captured!.shopping.createList('Weekly Lidl Grocery Run', 'Lidl');
+      const created = captured!.shopping.createList('Weekly Lidl Grocery Run', 'Big weekly shop');
       targetListId = created.id;
     });
 
     expect(captured!.shopping.lists.length).toBe(1);
     const targetList = captured!.shopping.lists.find(l => l.id === targetListId)!;
-    expect(targetList.storeName).toBe('Lidl');
+    expect(targetList.description).toBe('Big weekly shop');
+    expect(targetList.shareCode).toMatch(/^WEE-\d{4}$/);
     const initialExpensesCount = captured!.expense.expenses.length;
 
     let newItemId = '';
@@ -112,7 +114,8 @@ describe('ShoppingListContext', () => {
     // Should have logged an expense in ExpenseContext
     expect(captured!.expense.expenses.length).toBe(initialExpensesCount + 1);
     expect(captured!.expense.expenses[0].category).toBe('Groceries');
-    expect(captured!.expense.expenses[0].title).toContain(targetList.storeName);
+    expect(captured!.expense.expenses[0].title).toBe('Weekly Lidl Grocery Run');
+    expect(captured!.expense.expenses[0].walletId).toBe('w-u1-card');
   });
 });
 
@@ -129,9 +132,9 @@ describe('ShoppingListContext finishShoppingTrip', () => {
       ReactTestRenderer.create(
         <UserProvider>
           <ExpenseProvider>
-            <ShoppingListProvider>
+            <WalletProvider><ShoppingListProvider>
               <TestShoppingConsumer onState={s => (captured = s)} />
-            </ShoppingListProvider>
+            </ShoppingListProvider></WalletProvider>
           </ExpenseProvider>
         </UserProvider>
       );
@@ -139,7 +142,7 @@ describe('ShoppingListContext finishShoppingTrip', () => {
 
     let listId = '';
     await ReactTestRenderer.act(() => {
-      listId = captured!.shopping.createList('Unpriced', 'Aldi').id;
+      listId = captured!.shopping.createList('Unpriced').id;
     });
     await ReactTestRenderer.act(() => {
       captured!.shopping.addItem(listId, {
@@ -178,9 +181,9 @@ describe('useRemoveHouseholdMember', () => {
       ReactTestRenderer.create(
         <UserProvider>
           <ExpenseProvider>
-            <ShoppingListProvider>
+            <WalletProvider><ShoppingListProvider>
               <Consumer />
-            </ShoppingListProvider>
+            </ShoppingListProvider></WalletProvider>
           </ExpenseProvider>
         </UserProvider>
       );
@@ -196,7 +199,7 @@ describe('useRemoveHouseholdMember', () => {
 
     let listId = '';
     await ReactTestRenderer.act(() => {
-      listId = shopping!.createList('Shared', 'Coop').id;
+      listId = shopping!.createList('Shared').id;
     });
     await ReactTestRenderer.act(() => {
       shopping!.addItem(listId, {
@@ -241,9 +244,9 @@ describe('ShoppingListContext restoreItem', () => {
       ReactTestRenderer.create(
         <UserProvider>
           <ExpenseProvider>
-            <ShoppingListProvider>
+            <WalletProvider><ShoppingListProvider>
               <TestShoppingConsumer onState={s => (captured = s)} />
-            </ShoppingListProvider>
+            </ShoppingListProvider></WalletProvider>
           </ExpenseProvider>
         </UserProvider>
       );
@@ -251,7 +254,7 @@ describe('ShoppingListContext restoreItem', () => {
 
     let listId = '';
     await ReactTestRenderer.act(() => {
-      listId = captured!.shopping.createList('Order test', 'Spar').id;
+      listId = captured!.shopping.createList('Order test').id;
     });
     for (const name of ['Eggs', 'Milk', 'Bread']) {
       await ReactTestRenderer.act(() => {

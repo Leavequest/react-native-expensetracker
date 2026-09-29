@@ -10,20 +10,14 @@ export type ExpenseCategory =
   | 'Personal Care'
   | 'Services & Subscriptions';
 
-export type PaymentMethod =
-  | 'Debit Card'
-  | 'Credit Card'
-  | 'Apple Pay / Google Pay'
-  | 'Cash'
-  | 'Bank Transfer / SEPA';
-
 export interface Expense {
   id: string;
   title: string;
   amount: number;
   category: ExpenseCategory;
   date: string; // ISO string e.g. YYYY-MM-DDTHH:mm:ss.sssZ
-  paymentMethod: PaymentMethod;
+  /** Wallet the money came out of */
+  walletId: string;
   notes?: string;
   linkedShoppingListId?: string;
   paidByUserId: string;

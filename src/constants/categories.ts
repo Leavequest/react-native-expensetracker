@@ -1,4 +1,4 @@
-import { ExpenseCategory, GroceryAisle, PaymentMethod } from '../types';
+import { ExpenseCategory, GroceryAisle } from '../types';
 // Type-only import: constants must not pull UI components in at runtime
 import type { IconName } from '../components/common/Icon';
 
@@ -19,14 +19,6 @@ export const EXPENSE_CATEGORIES: CategoryInfo[] = [
   { name: 'Shopping', icon: 'bag', color: '#14B8A6' },
   { name: 'Personal Care', icon: 'sparkles', color: '#F97316' },
   { name: 'Services & Subscriptions', icon: 'phone', color: '#64748B' },
-];
-
-export const PAYMENT_METHODS: PaymentMethod[] = [
-  'Debit Card',
-  'Credit Card',
-  'Apple Pay / Google Pay',
-  'Cash',
-  'Bank Transfer / SEPA',
 ];
 
 export interface AisleInfo {
@@ -64,23 +56,6 @@ export function getAisleInfo(aisle: GroceryAisle): AisleInfo {
     GROCERY_AISLES.find(a => a.name === aisle) ?? { name: aisle, icon: 'package', color: '#94A3B8' }
   );
 }
-
-export interface StorePreset {
-  name: string;
-  color: string;
-}
-
-export const EUROPEAN_STORES: StorePreset[] = [
-  { name: 'Lidl', color: '#0050AA' },
-  { name: 'Aldi', color: '#001A9C' },
-  { name: 'Carrefour', color: '#004F9F' },
-  { name: 'Tesco', color: '#00539F' },
-  { name: 'Spar', color: '#008542' },
-  { name: 'Mercadona', color: '#00833B' },
-  { name: 'Rewe', color: '#CC0000' },
-  { name: 'Coop', color: '#E35205' },
-  { name: 'Supermarket / General', color: '#059669' },
-];
 
 export interface QuickGroceryPreset {
   name: string;

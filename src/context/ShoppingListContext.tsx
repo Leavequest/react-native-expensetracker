@@ -13,10 +13,11 @@ import { generateId } from '../utils';
 import { PersistedShoppingState, saveSlice } from '../storage/persistence';
 import { useExpense } from './ExpenseContext';
 import { useUser } from './UserContext';
+import { useWallet } from './WalletContext';
 
 interface ShoppingListContextType {
   lists: ShoppingList[];
-  createList: (name: string, storeName: string, color?: string) => ShoppingList;
+  createList: (name: string, description?: string) => ShoppingList;
   updateList: (id: string, updates: Partial<ShoppingList>) => void;
   deleteList: (id: string) => void;
   addItem: (
@@ -38,15 +39,16 @@ interface ShoppingListContextType {
     listId: string,
     actualAmount?: number
   ) => { totalAmount: number; expenseId: string } | null;
-  resetShoppingListsToDefault: () => void;
+  /** Replaces every list (demo data, delete all data) */
+  replaceLists: (lists: ShoppingList[]) => void;
 }
 
 /**
  * Builds a share code like "LID-4821", retrying until it doesn't clash
  * with an existing list.
  */
-function generateShareCode(storeName: string, existingLists: ShoppingList[]): string {
-  const prefix = storeName.replace(/[^a-z]/gi, '').substring(0, 3).toUpperCase() || 'LST';
+function generateShareCode(listName: string, existingLists: ShoppingList[]): string {
+  const prefix = listName.replace(/[^a-z]/gi, '').substring(0, 3).toUpperCase() || 'LST';
   const existingCodes = new Set(existingLists.map(l => l.shareCode.toUpperCase()));
   let code: string;
   do {
@@ -75,6 +77,7 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({
     saveSlice('shopping', { lists });
   }, [lists]);
   const { addExpense } = useExpense();
+  const { walletsOf } = useWallet();
   const { activeUser } = useUser();
   const activeUserId = activeUser.id;
 
@@ -89,13 +92,13 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({
   );
 
   const createList = useCallback(
-    (name: string, storeName: string, color?: string): ShoppingList => {
+    (name: string, description?: string): ShoppingList => {
       const newList: ShoppingList = {
         id: generateId('list'),
         name,
-        storeName,
-        color: color || LIGHT_COLORS.primary,
-        shareCode: generateShareCode(storeName, lists),
+        description: description || undefined,
+        color: LIGHT_COLORS.primary,
+        shareCode: generateShareCode(name, lists),
         collaboratorIds: [activeUserId],
         items: [],
         isArchived: false,
@@ -210,12 +213,16 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({
 
       if (finalAmount <= 0) return null;
 
+      // Card by default, since that's how most shopping trips are paid
+      const ownWallets = walletsOf(activeUserId);
+      const walletId = (ownWallets.find(w => w.type === 'card') ?? ownWallets[0])?.id ?? '';
+
       const createdExpense = addExpense({
-        title: `${targetList.storeName} - ${targetList.name}`,
+        title: targetList.name,
         amount: finalAmount,
         category: 'Groceries',
         date: new Date().toISOString(),
-        paymentMethod: 'Debit Card',
+        walletId,
         paidByUserId: activeUserId,
         linkedShoppingListId: targetList.id,
         notes: `Finished shopping trip (${completedItems.length}/${targetList.items.length} items acquired)`,
@@ -229,11 +236,11 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({
         expenseId: createdExpense.id,
       };
     },
-    [lists, activeUserId, addExpense, updateListItems]
+    [lists, activeUserId, addExpense, updateListItems, walletsOf]
   );
 
-  const resetShoppingListsToDefault = useCallback(() => {
-    setLists(INITIAL_SHOPPING_LISTS);
+  const replaceLists = useCallback((nextLists: ShoppingList[]) => {
+    setLists(nextLists);
   }, []);
 
   const value = useMemo(
@@ -249,7 +256,7 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({
       joinListByCode,
       removeMemberFromLists,
       finishShoppingTrip,
-      resetShoppingListsToDefault,
+      replaceLists,
     }),
     [
       lists,
@@ -263,7 +270,7 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({
       joinListByCode,
       removeMemberFromLists,
       finishShoppingTrip,
-      resetShoppingListsToDefault,
+      replaceLists,
     ]
   );
 

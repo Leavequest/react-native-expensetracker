@@ -24,7 +24,8 @@ export interface ShoppingItem {
 export interface ShoppingList {
   id: string;
   name: string;
-  storeName: string;
+  /** Optional note shown under the name, e.g. what the list is for */
+  description?: string;
   color: string;
   shareCode: string;
   collaboratorIds: string[];

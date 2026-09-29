@@ -1,8 +1,6 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, SectionList } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { SectionList, StyleSheet, Text, View } from 'react-native';
 import {
-  Chip,
-  ChipRow,
   EmptyState,
   FloatingActionButton,
   Header,
@@ -10,121 +8,160 @@ import {
   showUndoToast,
 } from '../components/common';
 import {
-  BudgetOverviewCard,
-  ExpenseItemRow,
-  ExpenseFormModal,
+  BudgetBar,
+  KindFilter,
+  KindFilterValue,
+  TimelineRow,
+  TransactionFormModal,
 } from '../components/expenses';
-import { EXPENSE_CATEGORIES, THEME } from '../constants';
-import { useExpense, useUser, makeStyles } from '../context';
-import { Expense, ExpenseCategory } from '../types';
-import { groupByDay } from '../utils';
+import { WalletCarousel, WalletFormModal } from '../components/wallets';
+import { THEME } from '../constants';
+import { makeStyles, useExpense, useUser, useWallet } from '../context';
+import { Wallet } from '../types';
+import {
+  buildTimeline,
+  groupByDay,
+  resolveSelectedWallet,
+  signedAmount,
+  TimelineEntry,
+} from '../utils';
 
 export const ExpensesScreen: React.FC = () => {
   const styles = useStyles();
   const { expenses, deleteExpense, restoreExpense } = useExpense();
-  const { formatAmount } = useUser();
-  const [selectedCategory, setSelectedCategory] = useState<ExpenseCategory | 'All'>('All');
-  const [modalVisible, setModalVisible] = useState(false);
+  const { activeUser, formatAmount } = useUser();
+  const {
+    wallets,
+    incomes,
+    transfers,
+    balances,
+    walletsOf,
+    deleteIncome,
+    restoreIncome,
+    deleteTransfer,
+    restoreTransfer,
+  } = useWallet();
 
-  const sections = useMemo(() => {
-    const filtered =
-      selectedCategory === 'All'
-        ? expenses
-        : expenses.filter(e => e.category === selectedCategory);
-    return groupByDay(filtered).map(group => ({
-      ...group,
-      total: group.data.reduce((sum, e) => sum + e.amount, 0),
-    }));
-  }, [expenses, selectedCategory]);
+  const [selectedId, setSelectedId] = useState('all');
+  const [kind, setKind] = useState<KindFilterValue>('all');
+  const [formVisible, setFormVisible] = useState(false);
+  const [walletForm, setWalletForm] = useState<{ visible: boolean; wallet: Wallet | null }>({
+    visible: false,
+    wallet: null,
+  });
 
-  const categoryCounts = useMemo(() => {
-    const counts: Partial<Record<ExpenseCategory, number>> = {};
-    expenses.forEach(e => {
-      counts[e.category] = (counts[e.category] || 0) + 1;
-    });
-    return counts;
-  }, [expenses]);
+  const visibleWallets = walletsOf(activeUser.id);
+  // Falls back to "All" when the selected wallet is archived or belongs to another member
+  const selected = resolveSelectedWallet(selectedId, visibleWallets);
 
-  const handleDeleteExpense = (expense: Expense) => {
-    deleteExpense(expense.id);
-    showUndoToast(`Deleted "${expense.title}"`, () => restoreExpense(expense));
+  // "All" includes archived wallets so their history stays visible
+  const walletIds = useMemo(
+    () =>
+      selected === 'all'
+        ? wallets.filter(w => w.ownerId === activeUser.id).map(w => w.id)
+        : [selected],
+    [selected, wallets, activeUser.id]
+  );
+
+  const sections = useMemo(
+    () =>
+      groupByDay(buildTimeline({ expenses, incomes, transfers }, { walletIds, kind })).map(group => ({
+        ...group,
+        total:
+          Math.round(group.data.reduce((sum, entry) => sum + signedAmount(entry, walletIds), 0) * 100) /
+          100,
+      })),
+    [expenses, incomes, transfers, walletIds, kind]
+  );
+
+  const walletName = useCallback(
+    (id: string) => wallets.find(w => w.id === id)?.name ?? 'Unknown wallet',
+    [wallets]
+  );
+
+  const handleDelete = (entry: TimelineEntry) => {
+    switch (entry.kind) {
+      case 'expense':
+        deleteExpense(entry.id);
+        showUndoToast(`Deleted "${entry.item.title}"`, () => restoreExpense(entry.item));
+        break;
+      case 'income':
+        deleteIncome(entry.id);
+        showUndoToast(`Deleted "${entry.item.title}"`, () => restoreIncome(entry.item));
+        break;
+      case 'transfer':
+        deleteTransfer(entry.id);
+        showUndoToast('Deleted transfer', () => restoreTransfer(entry.item));
+        break;
+    }
   };
+
+  const formatTotal = (total: number) => (total > 0 ? `+${formatAmount(total)}` : formatAmount(total));
 
   return (
     <View style={styles.container}>
-      <Header
-        title="Expense Tracker"
-        subtitle="Manage personal expenses"
-      />
+      <Header title="Expenses" subtitle="Wallets, income & spending" />
 
       <SectionList
         sections={sections}
-        keyExtractor={item => item.id}
+        keyExtractor={item => `${item.kind}-${item.id}`}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}
         ListHeaderComponent={
           <>
-            <BudgetOverviewCard />
-
-            {/* Category Filter Chips */}
-            <View style={styles.filterSection}>
-              <Text style={styles.sectionTitle}>Recent Transactions</Text>
-              <ChipRow contentContainerStyle={styles.filterRow}>
-                <Chip
-                  label={`All (${expenses.length})`}
-                  selected={selectedCategory === 'All'}
-                  onPress={() => setSelectedCategory('All')}
-                />
-
-                {EXPENSE_CATEGORIES.map(cat => {
-                  const count = categoryCounts[cat.name] || 0;
-                  if (count === 0 && selectedCategory !== cat.name) return null;
-
-                  return (
-                    <Chip
-                      key={cat.name}
-                      label={`${cat.name} (${count})`}
-                      icon={cat.icon}
-                      selected={selectedCategory === cat.name}
-                      selectedColor={cat.color}
-                      onPress={() => setSelectedCategory(cat.name)}
-                    />
-                  );
-                })}
-              </ChipRow>
+            <WalletCarousel
+              wallets={visibleWallets}
+              balances={balances}
+              selectedId={selected}
+              onSelect={setSelectedId}
+              onEdit={wallet => setWalletForm({ visible: true, wallet })}
+              onAdd={() => setWalletForm({ visible: true, wallet: null })}
+            />
+            <View style={styles.budget}>
+              <BudgetBar />
             </View>
+            <Text style={styles.sectionTitle}>Activity</Text>
+            <KindFilter value={kind} onChange={setKind} />
           </>
         }
         renderSectionHeader={({ section }) => (
           <View style={styles.dayHeader}>
             <Text style={styles.dayTitle}>{section.title}</Text>
-            <Text style={styles.dayTotal}>-{formatAmount(section.total)}</Text>
+            <Text style={styles.dayTotal}>{formatTotal(section.total)}</Text>
           </View>
         )}
         renderItem={({ item }) => (
-          <SwipeToDelete onDelete={() => handleDeleteExpense(item)}>
-            <ExpenseItemRow expense={item} onDelete={handleDeleteExpense} />
+          <SwipeToDelete onDelete={() => handleDelete(item)}>
+            <TimelineRow
+              entry={item}
+              amount={signedAmount(item, walletIds)}
+              walletName={walletName}
+              onDelete={() => handleDelete(item)}
+            />
           </SwipeToDelete>
         )}
         ItemSeparatorComponent={RowSeparator}
         ListEmptyComponent={
           <EmptyState
             icon="receipt"
-            title="No transactions found"
-            subtitle={'Tap the "+" button below to log your first expense.'}
+            title="No activity yet"
+            subtitle="Tap + to add an expense, income or transfer."
           />
         }
         contentContainerStyle={styles.listContent}
       />
 
-      <FloatingActionButton
-        onPress={() => setModalVisible(true)}
-        accessibilityLabel="Add expense"
-      />
+      <FloatingActionButton onPress={() => setFormVisible(true)} accessibilityLabel="Add transaction" />
 
-      <ExpenseFormModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
+      <TransactionFormModal
+        visible={formVisible}
+        onClose={() => setFormVisible(false)}
+        defaultWalletId={selected === 'all' ? undefined : selected}
+      />
+      <WalletFormModal
+        visible={walletForm.visible}
+        wallet={walletForm.wallet}
+        onClose={() => setWalletForm(prev => ({ ...prev, visible: false }))}
       />
     </View>
   );
@@ -143,19 +180,16 @@ const useStyles = makeStyles(colors => ({
   listContent: {
     paddingBottom: 90,
   },
-  filterSection: {
-    marginTop: THEME.spacing.sm,
-    marginBottom: THEME.spacing.xs,
+  budget: {
+    marginHorizontal: THEME.spacing.lg,
+    marginTop: THEME.spacing.lg,
+    marginBottom: THEME.spacing.md,
   },
   sectionTitle: {
     ...THEME.typography.titleSmall,
     color: colors.textPrimary,
     marginHorizontal: THEME.spacing.lg,
     marginBottom: THEME.spacing.sm,
-  },
-  filterRow: {
-    paddingHorizontal: THEME.spacing.lg,
-    paddingBottom: THEME.spacing.sm,
   },
   dayHeader: {
     flexDirection: 'row',

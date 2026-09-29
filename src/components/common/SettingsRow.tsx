@@ -16,6 +16,8 @@ interface SettingsRowProps {
   left?: ReactNode;
   /** Current value shown on the right, e.g. "€ EUR" */
   value?: string;
+  /** Custom control shown on the right, e.g. a Switch or a check mark */
+  right?: ReactNode;
   /** Tags shown after the label, e.g. member tags or a "Soon" badge */
   tags?: ReactNode;
   /** Defaults to a chevron when the row is pressable */
@@ -35,6 +37,7 @@ export const SettingsRow: React.FC<SettingsRowProps> = ({
   label,
   left,
   value,
+  right,
   tags,
   accessory,
   destructive = false,
@@ -80,6 +83,7 @@ export const SettingsRow: React.FC<SettingsRowProps> = ({
       </View>
 
       {value ? <Text style={styles.value}>{value}</Text> : null}
+      {right}
       {shownAccessory === 'chevron' ? (
         <Icon name="chevron-right" size={16} color={colors.textMuted} />
       ) : null}

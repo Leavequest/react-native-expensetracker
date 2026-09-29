@@ -4,6 +4,7 @@ import ReactTestRenderer from 'react-test-renderer';
 import { UserProvider } from '../src/context/UserContext';
 import { ExpenseProvider } from '../src/context/ExpenseContext';
 import { ShoppingListProvider } from '../src/context/ShoppingListContext';
+import { WalletProvider } from '../src/context/WalletContext';
 import { PersistedAppState, PersistedUserState } from '../src/storage/persistence';
 import { UserProfile } from '../src/types';
 
@@ -23,9 +24,11 @@ export async function renderWithProviders(ui: ReactElement, options: RenderOptio
     renderer = ReactTestRenderer.create(
       <UserProvider initialState={state.user}>
         <ExpenseProvider initialState={state.expenses}>
-          <ShoppingListProvider initialState={state.shopping}>
-            <Wrapper>{ui}</Wrapper>
-          </ShoppingListProvider>
+          <WalletProvider initialState={state.wallets}>
+            <ShoppingListProvider initialState={state.shopping}>
+              <Wrapper>{ui}</Wrapper>
+            </ShoppingListProvider>
+          </WalletProvider>
         </ExpenseProvider>
       </UserProvider>
     );
@@ -58,6 +61,9 @@ export function findPressable(root: Instance, predicate: (node: Instance) => boo
 
 export const findByLabel = (root: Instance, label: string) =>
   findPressable(root, node => node.props.accessibilityLabel === label);
+
+export const findButtonWithText = (root: Instance, text: string) =>
+  findPressable(root, node => node.findAllByType(Text).some(t => t.props.children === text));
 
 export async function press(node: Instance | undefined) {
   expect(node).toBeDefined();

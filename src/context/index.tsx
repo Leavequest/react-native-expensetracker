@@ -3,13 +3,16 @@ import { UserProvider } from './UserContext';
 import { ExpenseProvider } from './ExpenseContext';
 import { ShoppingListProvider } from './ShoppingListContext';
 import { ThemeProvider } from './ThemeContext';
+import { WalletProvider } from './WalletContext';
 import { loadAppState, PersistedAppState } from '../storage/persistence';
 
 export * from './UserContext';
 export * from './ExpenseContext';
 export * from './ShoppingListContext';
+export * from './WalletContext';
 export * from './ThemeContext';
 export * from './useRemoveHouseholdMember';
+export * from './useAppData';
 export * from './usePermission';
 
 interface AppProvidersProps {
@@ -38,9 +41,11 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children, fallback =
     <ThemeProvider initialState={savedState.theme}>
       <UserProvider initialState={savedState.user}>
         <ExpenseProvider initialState={savedState.expenses}>
-          <ShoppingListProvider initialState={savedState.shopping}>
-            {children}
-          </ShoppingListProvider>
+          <WalletProvider initialState={savedState.wallets}>
+            <ShoppingListProvider initialState={savedState.shopping}>
+              {children}
+            </ShoppingListProvider>
+          </WalletProvider>
         </ExpenseProvider>
       </UserProvider>
     </ThemeProvider>

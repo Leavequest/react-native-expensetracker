@@ -1,84 +1,62 @@
 import React from 'react';
-import { Alert, Text, View } from 'react-native';
-import { Button } from '../../components/common';
-import { DEFAULT_CURRENCY, THEME } from '../../constants';
-import { useExpense, useShoppingList, useUser, makeStyles } from '../../context';
-import { SettingsSection } from './SettingsSection';
+import { Alert } from 'react-native';
+import { SettingsGroup, SettingsRow, showSuccessToast } from '../../components/common';
+import { OWNER_ONLY_CAPTION, useAppData, usePermission } from '../../context';
+import { version } from '../../../package.json';
 
-const APP_INFO: Array<[label: string, value: string]> = [
-  ['Architecture', 'React Native'],
-  ['React Version', '19.2.3'],
-  ['React Native', '0.87.1'],
-  ['Market Region', 'Europe (EUR € default)'],
-];
+function confirm(title: string, message: string, actionLabel: string, destructive: boolean, onConfirm: () => void) {
+  Alert.alert(title, message, [
+    { text: 'Cancel', style: 'cancel' },
+    { text: actionLabel, style: destructive ? 'destructive' : 'default', onPress: onConfirm },
+  ]);
+}
 
 export const AppDataSection: React.FC = () => {
-  const styles = useStyles();
-  const { householdUsers, setCurrency, setActiveUser } = useUser();
-  const { resetExpensesToDefault } = useExpense();
-  const { resetShoppingListsToDefault } = useShoppingList();
+  const { loadDemoData, deleteAllData } = useAppData();
+  const canClear = usePermission('clearData').allowed;
 
-  const handleResetData = () => {
-    Alert.alert(
-      'Clear all data?',
-      'All expenses, budgets and shopping lists will be permanently deleted.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear Data',
-          style: 'destructive',
-          onPress: () => {
-            resetExpensesToDefault();
-            resetShoppingListsToDefault();
-            setCurrency(DEFAULT_CURRENCY);
-            setActiveUser(householdUsers[0].id);
-          },
-        },
-      ]
+  const handleLoadDemo = () =>
+    confirm(
+      'Load demo data?',
+      'Your expenses, income, wallets and shopping lists will be replaced with sample data.',
+      'Load',
+      false,
+      () => {
+        loadDemoData();
+        showSuccessToast('Demo data loaded');
+      }
     );
-  };
+
+  const handleDeleteAll = () =>
+    confirm(
+      'Delete all data?',
+      'All expenses, income, transfers, wallets and shopping lists will be permanently deleted. Household members are kept.',
+      'Delete',
+      true,
+      () => {
+        deleteAllData();
+        showSuccessToast('All data deleted');
+      }
+    );
 
   return (
-    <SettingsSection title="App & Data">
-      {APP_INFO.map(([label, value]) => (
-        <View key={label} style={styles.infoRow}>
-          <Text style={styles.infoLabel}>{label}</Text>
-          <Text style={styles.infoValue}>{value}</Text>
-        </View>
-      ))}
-
-      <Button
-        title="Clear All Data"
-        variant="outline"
-        onPress={handleResetData}
-        style={styles.resetBtn}
-        textStyle={styles.resetBtnText}
+    <SettingsGroup title="App & Data" caption="Demo data is a quick way to try every screen.">
+      <SettingsRow
+        label="Load demo data"
+        onPress={handleLoadDemo}
+        disabled={!canClear}
+        disabledCaption={OWNER_ONLY_CAPTION}
       />
-    </SettingsSection>
+      <SettingsRow
+        label="Delete all data"
+        destructive
+        accessory="none"
+        onPress={handleDeleteAll}
+        disabled={!canClear}
+        disabledCaption={OWNER_ONLY_CAPTION}
+      />
+      <SettingsRow label="Version" value={version} />
+      <SettingsRow label="Built with" value="React Native 0.87" />
+    </SettingsGroup>
   );
 };
-
-const useStyles = makeStyles(colors => ({
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.surfaceBorder,
-  },
-  infoLabel: {
-    ...THEME.typography.caption,
-    color: colors.textSecondary,
-  },
-  infoValue: {
-    ...THEME.typography.captionBold,
-    color: colors.textPrimary,
-  },
-  resetBtn: {
-    marginTop: THEME.spacing.lg,
-    borderColor: colors.danger,
-  },
-  resetBtnText: {
-    color: colors.danger,
-  },
-}));

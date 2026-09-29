@@ -11,7 +11,6 @@ import {
   CustomModal,
   Button,
   EmptyState,
-  ErrorBanner,
   FormInput,
   FormLabel,
   Icon,
@@ -27,12 +26,10 @@ export const ShoppingListsScreen: React.FC<ShoppingStackScreenProps<'ShoppingLis
 }) => {
   const { colors } = useTheme();
   const styles = useStyles();
-  const { lists, deleteList, joinListByCode } = useShoppingList();
+  const { lists, deleteList } = useShoppingList();
 
   const [addListVisible, setAddListVisible] = useState(false);
   const [joinModalVisible, setJoinModalVisible] = useState(false);
-  const [joinCodeInput, setJoinCodeInput] = useState('');
-  const [joinError, setJoinError] = useState('');
 
   const openList = (listId: string) => {
     navigation.navigate('ShoppingListDetail', { listId });
@@ -49,27 +46,11 @@ export const ShoppingListsScreen: React.FC<ShoppingStackScreenProps<'ShoppingLis
     );
   };
 
-  const handleJoin = () => {
-    if (!joinCodeInput.trim()) {
-      setJoinError('Please enter a share code (e.g., LID-4821).');
-      return;
-    }
-
-    const success = joinListByCode(joinCodeInput.trim());
-    if (success) {
-      setJoinCodeInput('');
-      setJoinError('');
-      setJoinModalVisible(false);
-    } else {
-      setJoinError('No list found with this code. Check the code and try again.');
-    }
-  };
-
   return (
     <View style={styles.container}>
       <Header
         title="Shopping Lists"
-        subtitle="Shared lists & European grocery presets"
+        subtitle="Shared lists for the household"
       />
 
       <FlatList
@@ -90,10 +71,7 @@ export const ShoppingListsScreen: React.FC<ShoppingStackScreenProps<'ShoppingLis
 
               <TouchableOpacity
                 activeOpacity={0.7}
-                onPress={() => {
-                  setJoinError('');
-                  setJoinModalVisible(true);
-                }}
+                onPress={() => setJoinModalVisible(true)}
                 style={styles.actionBtnSecondary}
               >
                 <Icon name="link" size={16} color={colors.textPrimary} />
@@ -138,24 +116,29 @@ export const ShoppingListsScreen: React.FC<ShoppingStackScreenProps<'ShoppingLis
         subtitle="Enter the share code given by a flatmate or family member"
       >
         <View style={styles.joinModalContent}>
-          <ErrorBanner message={joinError} />
+          {/* Codes only work on the phone that created the list until there is a backend to sync through */}
+          <View style={styles.wipBanner}>
+            <Icon name="info" size={16} color={colors.warningDark} />
+            <Text style={styles.wipText}>
+              Joining by code is a work in progress: it needs a backend to share lists between phones.
+            </Text>
+          </View>
 
           <FormLabel style={styles.joinLabel}>Share Code</FormLabel>
           <FormInput
-            style={styles.joinInput}
-            placeholder="e.g. LID-4821 or CAR-9102"
-            autoCapitalize="characters"
-            value={joinCodeInput}
-            onChangeText={t => {
-              setJoinCodeInput(t);
-              setJoinError('');
-            }}
+            style={[styles.joinInput, styles.joinInputDisabled]}
+            placeholder="e.g. WEE-4821"
+            accessibilityLabel="Share code"
+            editable={false}
+            value=""
+            onChangeText={() => {}}
           />
 
           <View style={styles.joinActions}>
             <Button
               title="Join List"
-              onPress={handleJoin}
+              onPress={() => {}}
+              disabled
               size="lg"
               style={styles.joinSubmitBtn}
             />
@@ -221,6 +204,24 @@ const useStyles = makeStyles(colors => ({
     color: colors.textPrimary,
     marginHorizontal: THEME.spacing.lg,
     marginBottom: THEME.spacing.sm,
+  },
+  wipBanner: {
+    flexDirection: 'row',
+    gap: THEME.spacing.sm,
+    alignItems: 'flex-start',
+    backgroundColor: colors.warningLight,
+    padding: THEME.spacing.md,
+    borderRadius: THEME.borderRadius.md,
+    marginBottom: THEME.spacing.sm,
+  },
+  wipText: {
+    ...THEME.typography.caption,
+    color: colors.warningDark,
+    flex: 1,
+    lineHeight: 18,
+  },
+  joinInputDisabled: {
+    opacity: 0.5,
   },
   joinModalContent: {
     paddingBottom: THEME.spacing.md,

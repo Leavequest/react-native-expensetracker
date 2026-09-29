@@ -1,9 +1,8 @@
 import React from 'react';
 import { View, ScrollView } from 'react-native';
 import { Header } from '../components/common';
-import { CurrencySection } from './settings/CurrencySection';
+import { PreferencesSection } from './settings/PreferencesSection';
 import { HouseholdSection } from './settings/HouseholdSection';
-import { BudgetSection } from './settings/BudgetSection';
 import { AppDataSection } from './settings/AppDataSection';
 import { makeStyles } from '../context';
 
@@ -12,15 +11,14 @@ export const SettingsScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="Settings" subtitle="Currency, household & preferences" />
+      <Header title="Settings" subtitle="Preferences, household & data" />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <CurrencySection />
+        <PreferencesSection />
         <HouseholdSection />
-        <BudgetSection />
         <AppDataSection />
       </ScrollView>
     </View>

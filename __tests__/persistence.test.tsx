@@ -14,7 +14,7 @@ const sampleExpense: Expense = {
   amount: 42.1,
   category: 'Groceries',
   date: '2026-09-20T10:00:00.000Z',
-  paymentMethod: 'Cash',
+  walletId: 'w-u1-cash',
   paidByUserId: 'u1',
 };
 
@@ -29,6 +29,7 @@ describe('persistence', () => {
       expenses: undefined,
       shopping: undefined,
       theme: undefined,
+      wallets: undefined,
     });
   });
 
@@ -59,7 +60,55 @@ describe('persistence', () => {
       expenses: undefined,
       shopping: undefined,
       theme: undefined,
+      wallets: undefined,
     });
+  });
+
+  it('round-trips the wallets slice', async () => {
+    const wallet = {
+      id: 'w-u1-cash',
+      ownerId: 'u1',
+      name: 'Cash',
+      type: 'cash' as const,
+      color: '#059669',
+      openingBalance: 20,
+    };
+    await saveSlice('wallets', { wallets: [wallet], incomes: [], transfers: [] });
+    expect((await loadAppState()).wallets).toEqual({ wallets: [wallet], incomes: [], transfers: [] });
+  });
+
+  it('ignores a malformed wallets slice', async () => {
+    await storage.setItem(
+      'wallets',
+      JSON.stringify({ version: 1, data: { wallets: [], incomes: 'nope', transfers: [] } })
+    );
+    expect((await loadAppState()).wallets).toBeUndefined();
+  });
+
+  it('moves expenses saved with a payment method onto the default wallets', async () => {
+    const legacy = (id: string, paymentMethod: string) => ({
+      id,
+      title: id,
+      amount: 10,
+      category: 'Groceries',
+      date: '2026-09-20T10:00:00.000Z',
+      paymentMethod,
+      paidByUserId: 'u1',
+    });
+    await storage.setItem(
+      'expenses',
+      JSON.stringify({
+        version: 1,
+        data: {
+          expenses: [legacy('coffee', 'Cash'), legacy('shoes', 'Credit Card')],
+          budget: { month: '2026-09', totalLimit: 0, categoryLimits: {} },
+        },
+      })
+    );
+
+    const migrated = (await loadAppState()).expenses!.expenses;
+    expect(migrated.map(e => e.walletId)).toEqual(['w-u1-cash', 'w-u1-card']);
+    expect(migrated[0]).not.toHaveProperty('paymentMethod');
   });
 
   it('fills in member defaults for data saved before roles existed', async () => {

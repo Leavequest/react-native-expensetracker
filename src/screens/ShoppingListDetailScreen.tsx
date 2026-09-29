@@ -5,7 +5,6 @@ import { GroceryAisle, ShoppingItem } from '../types';
 import { getAisleInfo, GROCERY_AISLES, THEME } from '../constants';
 import { useShoppingList, useUser, makeStyles, useTheme } from '../context';
 import {
-  Badge,
   Button,
   EmptyState,
   FloatingActionButton,
@@ -119,7 +118,7 @@ export const ShoppingListDetailScreen: React.FC<
       return;
     }
     showSuccessToast(
-      `Recorded ${formatAmount(result.totalAmount)} at ${currentList.storeName} in Expenses`
+      `Recorded ${formatAmount(result.totalAmount)} for "${currentList.name}" in Expenses`
     );
   };
 
@@ -150,12 +149,9 @@ export const ShoppingListDetailScreen: React.FC<
         {/* Store & Progress Header Card */}
         <View style={styles.headerCard}>
           <View style={styles.storeBadgeRow}>
-            <Badge
-              label={currentList.storeName}
-              icon="store"
-              color={currentList.color}
-              backgroundColor={`${currentList.color}15`}
-            />
+            <Text style={styles.descriptionText} numberOfLines={3}>
+              {currentList.description || 'No description'}
+            </Text>
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => setShareModalVisible(true)}
@@ -300,8 +296,14 @@ const useStyles = makeStyles(colors => ({
   storeBadgeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    gap: THEME.spacing.md,
     marginBottom: THEME.spacing.md,
+  },
+  descriptionText: {
+    ...THEME.typography.body,
+    color: colors.textSecondary,
+    flex: 1,
   },
   codePill: {
     backgroundColor: colors.surfaceSubtle,

@@ -57,7 +57,7 @@ describe('ExpenseContext', () => {
         title: 'Test Supermarket',
         amount: 50.0,
         category: 'Groceries',
-        paymentMethod: 'Debit Card',
+        walletId: 'w-u1-card',
         date: new Date().toISOString(),
         paidByUserId: 'u1',
       });
@@ -95,7 +95,7 @@ describe('ExpenseContext', () => {
         title: 'Coffee',
         amount: 3.2,
         category: 'Dining & Takeout',
-        paymentMethod: 'Cash',
+        walletId: 'w-u1-cash',
         date: new Date().toISOString(),
         paidByUserId: 'u1',
       });

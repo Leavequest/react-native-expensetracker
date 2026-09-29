@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Button, Chip, ChipRow, CustomModal, FormInput, FormLabel } from '../common';
-import { EUROPEAN_STORES, StorePreset, THEME } from '../../constants';
+import { Button, CustomModal, FormInput, FormLabel } from '../common';
+import { THEME } from '../../constants';
 import { useShoppingList } from '../../context';
+
+const DEFAULT_LIST_NAME = 'Shopping list';
 
 interface AddListModalProps {
   visible: boolean;
@@ -18,29 +20,16 @@ export const AddListModal: React.FC<AddListModalProps> = ({
   const { createList } = useShoppingList();
 
   const [listName, setListName] = useState('');
-  const [selectedStore, setSelectedStore] = useState<StorePreset>(EUROPEAN_STORES[0]);
-
-  const resetForm = () => {
-    setListName('');
-    setSelectedStore(EUROPEAN_STORES[0]);
-  };
+  const [description, setDescription] = useState('');
 
   const handleClose = () => {
-    resetForm();
+    setListName('');
+    setDescription('');
     onClose();
   };
 
-  const handleSelectStore = (store: StorePreset) => {
-    setSelectedStore(store);
-    // Only replace the name if the user hasn't typed a custom one
-    if (!listName || EUROPEAN_STORES.some(s => listName === `${s.name} Shopping`)) {
-      setListName(`${store.name} Shopping`);
-    }
-  };
-
   const handleSubmit = () => {
-    const finalName = listName.trim() || `${selectedStore.name} Shopping`;
-    const newList = createList(finalName, selectedStore.name, selectedStore.color);
+    const newList = createList(listName.trim() || DEFAULT_LIST_NAME, description.trim());
     handleClose();
     onListCreated?.(newList.id);
   };
@@ -50,26 +39,24 @@ export const AddListModal: React.FC<AddListModalProps> = ({
       visible={visible}
       onClose={handleClose}
       title="Create New Shopping List"
-      subtitle="Select a European supermarket preset"
+      subtitle="Give it a name and, if you like, a short description"
     >
-      <FormLabel>Select Supermarket</FormLabel>
-      <ChipRow contentContainerStyle={styles.storesRow}>
-        {EUROPEAN_STORES.map(store => (
-          <Chip
-            key={store.name}
-            label={store.name}
-            selected={selectedStore.name === store.name}
-            selectedColor={store.color}
-            onPress={() => handleSelectStore(store)}
-          />
-        ))}
-      </ChipRow>
-
       <FormLabel>List Name</FormLabel>
       <FormInput
-        placeholder={`e.g. ${selectedStore.name} Groceries`}
+        placeholder="e.g. Weekly groceries"
+        accessibilityLabel="List name"
         value={listName}
         onChangeText={setListName}
+      />
+
+      <FormLabel>Description (Optional)</FormLabel>
+      <FormInput
+        style={styles.descriptionInput}
+        placeholder="e.g. Big shop for the weekend, party snacks..."
+        accessibilityLabel="List description"
+        value={description}
+        onChangeText={setDescription}
+        multiline
       />
 
       <View style={styles.actionsContainer}>
@@ -85,8 +72,9 @@ export const AddListModal: React.FC<AddListModalProps> = ({
 };
 
 const styles = StyleSheet.create({
-  storesRow: {
-    marginBottom: THEME.spacing.sm,
+  descriptionInput: {
+    height: 80,
+    textAlignVertical: 'top',
   },
   actionsContainer: {
     marginTop: THEME.spacing.xl,

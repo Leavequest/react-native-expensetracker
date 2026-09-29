@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { ShoppingList } from '../../types';
 import { THEME } from '../../constants';
 import { useUser, makeStyles } from '../../context';
-import { Avatar, Badge, ProgressBar } from '../common';
+import { Avatar, ProgressBar } from '../common';
 
 interface ShoppingListCardProps {
   list: ShoppingList;
@@ -43,15 +43,12 @@ export const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
           <Text numberOfLines={1} style={styles.listName}>
             {list.name}
           </Text>
-          <View style={styles.storeRow}>
-            <Badge
-              label={list.storeName}
-              color={list.color}
-              backgroundColor={`${list.color}15`}
-              size="sm"
-            />
-            <Text style={styles.codeText}>Code: {list.shareCode}</Text>
-          </View>
+          {list.description ? (
+            <Text numberOfLines={1} style={styles.descriptionText}>
+              {list.description}
+            </Text>
+          ) : null}
+          <Text style={styles.codeText}>Code: {list.shareCode}</Text>
         </View>
 
         <View style={styles.rightArea}>
@@ -135,10 +132,10 @@ const useStyles = makeStyles(colors => ({
     color: colors.textPrimary,
     marginBottom: 4,
   },
-  storeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  descriptionText: {
+    ...THEME.typography.caption,
+    color: colors.textSecondary,
+    marginBottom: 2,
   },
   codeText: {
     ...THEME.typography.caption,

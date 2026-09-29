@@ -18,7 +18,10 @@ export const AccountSheetProvider: React.FC<AccountSheetProviderProps> = ({
   const [visible, setVisible] = useState(false);
   const [profileMember, setProfileMember] = useState<UserProfile | null>(null);
 
-  const value = useMemo(() => ({ openAccountSheet: () => setVisible(true) }), []);
+  const value = useMemo(
+    () => ({ openAccountSheet: () => setVisible(true), openProfile: setProfileMember }),
+    []
+  );
 
   const handleEditProfile = (member: UserProfile) => {
     setVisible(false);

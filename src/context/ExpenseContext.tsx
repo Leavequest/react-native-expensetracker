@@ -34,7 +34,8 @@ interface ExpenseContextType {
   restoreExpense: (expense: Expense) => void;
   setTotalBudget: (amount: number) => void;
   setCategoryBudget: (category: ExpenseCategory, limit: number) => void;
-  resetExpensesToDefault: () => void;
+  /** Replaces all expenses and the budget (demo data, delete all data) */
+  replaceExpenses: (expenses: Expense[], budget: MonthlyBudget) => void;
 }
 
 const ExpenseContext = createContext<ExpenseContextType | undefined>(undefined);
@@ -123,9 +124,9 @@ export const ExpenseProvider: React.FC<ExpenseProviderProps> = ({ children, init
     }));
   }, []);
 
-  const resetExpensesToDefault = useCallback(() => {
-    setExpenses(INITIAL_EXPENSES);
-    setBudget(INITIAL_BUDGET);
+  const replaceExpenses = useCallback((nextExpenses: Expense[], nextBudget: MonthlyBudget) => {
+    setExpenses(nextExpenses);
+    setBudget(nextBudget);
   }, []);
 
   const value = useMemo(
@@ -143,7 +144,7 @@ export const ExpenseProvider: React.FC<ExpenseProviderProps> = ({ children, init
       restoreExpense,
       setTotalBudget,
       setCategoryBudget,
-      resetExpensesToDefault,
+      replaceExpenses,
     }),
     [
       expenses,
@@ -159,7 +160,7 @@ export const ExpenseProvider: React.FC<ExpenseProviderProps> = ({ children, init
       restoreExpense,
       setTotalBudget,
       setCategoryBudget,
-      resetExpensesToDefault,
+      replaceExpenses,
     ]
   );
 

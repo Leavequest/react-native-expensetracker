@@ -37,4 +37,11 @@ describe('SettingsRow', () => {
     );
     expect(hasText(root, 'Soon')).toBe(true);
   });
+
+  it('renders a custom control on the right', async () => {
+    const { root } = await renderWithProviders(
+      <SettingsRow label="Dark mode" right={<Text>ON</Text>} accessory="none" onPress={jest.fn()} />
+    );
+    expect(hasText(root, 'ON')).toBe(true);
+  });
 });

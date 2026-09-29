@@ -42,7 +42,8 @@ test('loads saved data and navigates between every screen', async () => {
   });
   const root = renderer!.root;
 
-  expect(hasText(root, 'Expense Tracker')).toBe(true);
+  expect(hasText(root, 'Wallets, income & spending')).toBe(true);
+  expect(hasText(root, 'All wallets')).toBe(true);
 
   // Log an expense through the sheet; it shows up under "Today"
   const typeInto = async (predicate: (node: Instance) => boolean, text: string) => {
@@ -57,9 +58,20 @@ test('loads saved data and navigates between every screen', async () => {
   await press(findButtonWithText(root, 'Add Expense'));
   expect(hasText(root, 'Today')).toBe(true);
   expect(hasText(root, 'Lunch')).toBe(true);
+  // The expense came out of the default (Cash) wallet
+  expect(hasText(root, '-€ 12.50')).toBe(true);
 
   await press(findTab(root, 'Shopping'));
   expect(hasText(root, 'Shopping Lists')).toBe(true);
+
+  // Joining by code needs a backend: the sheet says so and nothing can be typed or submitted
+  await press(findButtonWithText(root, 'Join via Code'));
+  expect(
+    hasText(root, 'Joining by code is a work in progress: it needs a backend to share lists between phones.')
+  ).toBe(true);
+  const codeInput = root.findAll(node => node.props.accessibilityLabel === 'Share code' && node.props.onChangeText)[0];
+  expect(codeInput.props.editable).toBe(false);
+  expect(findButtonWithText(root, 'Join List').props.disabled).toBe(true);
 
   // Creating a list opens its detail screen in the Shopping stack
   await press(findButtonWithText(root, 'New List'));
@@ -89,8 +101,8 @@ test('loads saved data and navigates between every screen', async () => {
   ).toBeGreaterThan(0);
 
   await press(findTab(root, 'Settings'));
-  expect(hasText(root, 'Active Currency')).toBe(true);
-  expect(hasText(root, 'Monthly Budget Limit')).toBe(true);
+  expect(hasText(root, 'Currency')).toBe(true);
+  expect(hasText(root, 'Dark mode')).toBe(true);
   expect(hasText(root, 'You')).toBe(true);
 
   // Tabs keep their state: the Shopping tab is still on the list detail
@@ -100,4 +112,5 @@ test('loads saved data and navigates between every screen', async () => {
   await ReactTestRenderer.act(async () => {
     renderer!.unmount();
   });
-});
+// Renders the whole app, which can take longer than the 5 s default when the suite runs in parallel
+}, 30000);

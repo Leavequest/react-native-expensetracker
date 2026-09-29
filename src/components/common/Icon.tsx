@@ -2,6 +2,8 @@ import React from 'react';
 // Type-only: importing values from the package root would bundle all ~1,700 icons
 import type { LucideIcon } from 'lucide-react-native';
 // One import per icon keeps the bundle small (Metro doesn't tree-shake)
+import ArrowDownLeft from 'lucide-react-native/icons/arrow-down-left';
+import ArrowLeftRight from 'lucide-react-native/icons/arrow-left-right';
 import Banknote from 'lucide-react-native/icons/banknote';
 import Beef from 'lucide-react-native/icons/beef';
 import Carrot from 'lucide-react-native/icons/carrot';
@@ -70,6 +72,8 @@ const ICONS = {
   info: Info,
   link: Link,
   warning: TriangleAlert,
+  income: ArrowDownLeft,
+  transfer: ArrowLeftRight,
   sun: Sun,
   moon: Moon,
   // Expense categories

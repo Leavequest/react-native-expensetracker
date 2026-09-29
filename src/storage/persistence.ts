@@ -2,11 +2,15 @@ import { createAsyncStorage } from '@react-native-async-storage/async-storage';
 import {
   CurrencyCode,
   Expense,
+  Income,
   MonthlyBudget,
   ShoppingList,
+  Transfer,
   UserProfile,
+  Wallet,
 } from '../types';
 import { withMemberDefaults } from '../utils/members';
+import { defaultWalletId } from '../utils/wallets';
 
 const storage = createAsyncStorage('finance-manager');
 
@@ -37,16 +41,23 @@ export interface PersistedThemeState {
   mode: ThemeMode;
 }
 
+export interface PersistedWalletState {
+  wallets: Wallet[];
+  incomes: Income[];
+  transfers: Transfer[];
+}
+
 export interface PersistedAppState {
   user?: PersistedUserState;
   expenses?: PersistedExpenseState;
   shopping?: PersistedShoppingState;
   theme?: PersistedThemeState;
+  wallets?: PersistedWalletState;
 }
 
 type SliceKey = keyof PersistedAppState;
 
-const SLICE_KEYS: SliceKey[] = ['user', 'expenses', 'shopping', 'theme'];
+const SLICE_KEYS: SliceKey[] = ['user', 'expenses', 'shopping', 'theme', 'wallets'];
 
 interface Envelope {
   version: number;
@@ -80,12 +91,23 @@ function parseUser(raw: string | null | undefined): PersistedUserState | undefin
   return { ...state, users: withMemberDefaults(state.users) };
 }
 
+/** Expenses saved before wallets existed carry a payment method instead of a wallet id. */
+type LegacyExpense = Expense & { paymentMethod?: string };
+
+function migrateExpense(expense: LegacyExpense): Expense {
+  if (expense.walletId) return expense;
+  const { paymentMethod, ...rest } = expense;
+  const type = paymentMethod === 'Cash' ? 'cash' : 'card';
+  return { ...rest, walletId: defaultWalletId(expense.paidByUserId, type) };
+}
+
 function parseExpenses(raw: string | null | undefined): PersistedExpenseState | undefined {
   const data = unwrap(raw);
   if (!data || !Array.isArray(data.expenses) || !data.budget || typeof data.budget !== 'object') {
     return undefined;
   }
-  return data as unknown as PersistedExpenseState;
+  const state = data as unknown as PersistedExpenseState;
+  return { ...state, expenses: (state.expenses as LegacyExpense[]).map(migrateExpense) };
 }
 
 function parseShopping(raw: string | null | undefined): PersistedShoppingState | undefined {
@@ -100,6 +122,19 @@ function parseTheme(raw: string | null | undefined): PersistedThemeState | undef
   return data as unknown as PersistedThemeState;
 }
 
+function parseWallets(raw: string | null | undefined): PersistedWalletState | undefined {
+  const data = unwrap(raw);
+  if (
+    !data ||
+    !Array.isArray(data.wallets) ||
+    !Array.isArray(data.incomes) ||
+    !Array.isArray(data.transfers)
+  ) {
+    return undefined;
+  }
+  return data as unknown as PersistedWalletState;
+}
+
 /**
  * Loads everything saved on the device. Any slice that is missing or
  * unreadable is left undefined so its provider falls back to defaults.
@@ -112,6 +147,7 @@ export async function loadAppState(): Promise<PersistedAppState> {
       expenses: parseExpenses(raw.expenses),
       shopping: parseShopping(raw.shopping),
       theme: parseTheme(raw.theme),
+      wallets: parseWallets(raw.wallets),
     };
   } catch (error) {
     console.warn('[persistence] Failed to load saved data, using defaults', error);
