@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Share } from 'react-native';
+import { View, Text, TouchableOpacity, Share } from 'react-native';
 import { Avatar, CustomModal, Button } from '../common';
 import { ShoppingList } from '../../types';
 import { THEME } from '../../constants';
-import { useUser } from '../../context';
+import { useUser, makeStyles } from '../../context';
 
 interface ShareListModalProps {
   visible: boolean;
@@ -16,6 +16,7 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
   onClose,
   list,
 }) => {
+  const styles = useStyles();
   const { householdUsers } = useUser();
 
   if (!list) return null;
@@ -93,13 +94,13 @@ export const ShareListModal: React.FC<ShareListModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   content: {
     paddingBottom: THEME.spacing.md,
   },
   label: {
     ...THEME.typography.captionBold,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
     marginBottom: 6,
     textTransform: 'uppercase',
   },
@@ -107,10 +108,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: THEME.colors.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
     borderRadius: THEME.borderRadius.md,
     borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
+    borderColor: colors.surfaceBorder,
     paddingHorizontal: THEME.spacing.md,
     paddingVertical: THEME.spacing.md,
   },
@@ -118,10 +119,10 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '800',
     letterSpacing: 2,
-    color: THEME.colors.primaryDark,
+    color: colors.primaryDark,
   },
   shareBtn: {
-    backgroundColor: THEME.colors.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: THEME.borderRadius.md,
@@ -133,15 +134,15 @@ const styles = StyleSheet.create({
   },
   hintText: {
     ...THEME.typography.caption,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
     marginTop: 8,
     lineHeight: 18,
   },
   collaboratorsList: {
-    backgroundColor: THEME.colors.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
     borderRadius: THEME.borderRadius.md,
     borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
+    borderColor: colors.surfaceBorder,
     padding: THEME.spacing.sm,
     gap: 8,
   },
@@ -159,20 +160,20 @@ const styles = StyleSheet.create({
   },
   userName: {
     ...THEME.typography.bodyBold,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
   },
   userEmail: {
     ...THEME.typography.caption,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
   },
   youBadge: {
-    backgroundColor: THEME.colors.primaryLight,
+    backgroundColor: colors.primaryLight,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: THEME.borderRadius.full,
   },
   youText: {
-    color: THEME.colors.primaryDark,
+    color: colors.primaryDark,
     fontSize: 11,
     fontWeight: '700',
   },
@@ -182,4 +183,4 @@ const styles = StyleSheet.create({
   doneBtn: {
     width: '100%',
   },
-});
+}));

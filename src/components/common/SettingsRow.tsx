@@ -2,13 +2,13 @@ import React, { ReactNode } from 'react';
 import {
   AccessibilityRole,
   AccessibilityState,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { THEME } from '../../constants';
 import { Icon } from './Icon';
+import { makeStyles, useTheme } from '../../context';
 
 interface SettingsRowProps {
   label: string;
@@ -45,12 +45,14 @@ export const SettingsRow: React.FC<SettingsRowProps> = ({
   accessibilityRole = 'button',
   accessibilityState,
 }) => {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const shownAccessory = accessory ?? (onPress ? 'chevron' : 'none');
   const labelColor = disabled
-    ? THEME.colors.textMuted
+    ? colors.textMuted
     : destructive
-      ? THEME.colors.danger
-      : THEME.colors.textPrimary;
+      ? colors.danger
+      : colors.textPrimary;
 
   return (
     <TouchableOpacity
@@ -79,16 +81,16 @@ export const SettingsRow: React.FC<SettingsRowProps> = ({
 
       {value ? <Text style={styles.value}>{value}</Text> : null}
       {shownAccessory === 'chevron' ? (
-        <Icon name="chevron-right" size={16} color={THEME.colors.textMuted} />
+        <Icon name="chevron-right" size={16} color={colors.textMuted} />
       ) : null}
       {shownAccessory === 'menu' ? (
-        <Icon name="chevron-down" size={16} color={THEME.colors.textMuted} />
+        <Icon name="chevron-down" size={16} color={colors.textMuted} />
       ) : null}
     </TouchableOpacity>
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -118,12 +120,12 @@ const styles = StyleSheet.create({
   },
   caption: {
     ...THEME.typography.caption,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
     marginTop: 2,
   },
   value: {
     ...THEME.typography.body,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
     fontVariant: ['tabular-nums'],
   },
-});
+}));

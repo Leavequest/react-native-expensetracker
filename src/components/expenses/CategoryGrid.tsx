@@ -1,8 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { EXPENSE_CATEGORIES, THEME } from '../../constants';
 import { ExpenseCategory } from '../../types';
 import { CategoryIcon } from '../common';
+import { makeStyles } from '../../context';
 
 interface CategoryGridProps {
   selected: ExpenseCategory;
@@ -10,37 +11,41 @@ interface CategoryGridProps {
 }
 
 /** Tappable grid of every expense category (icon + name). */
-export const CategoryGrid: React.FC<CategoryGridProps> = ({ selected, onSelect }) => (
-  <View style={styles.grid}>
-    {EXPENSE_CATEGORIES.map(cat => {
-      const isSelected = cat.name === selected;
-      return (
-        <TouchableOpacity
-          key={cat.name}
-          activeOpacity={0.7}
-          onPress={() => onSelect(cat.name)}
-          accessibilityRole="button"
-          accessibilityState={{ selected: isSelected }}
-          accessibilityLabel={cat.name}
-          style={[
-            styles.tile,
-            isSelected && { borderColor: cat.color, backgroundColor: `${cat.color}14` },
-          ]}
-        >
-          <CategoryIcon name={cat.icon} color={cat.color} size={36} />
-          <Text
-            numberOfLines={2}
-            style={[styles.label, isSelected && { color: cat.color }, isSelected && styles.labelSelected]}
-          >
-            {cat.name}
-          </Text>
-        </TouchableOpacity>
-      );
-    })}
-  </View>
-);
+export const CategoryGrid: React.FC<CategoryGridProps> = ({ selected, onSelect }) => {
+  const styles = useStyles();
 
-const styles = StyleSheet.create({
+  return (
+    <View style={styles.grid}>
+      {EXPENSE_CATEGORIES.map(cat => {
+        const isSelected = cat.name === selected;
+        return (
+          <TouchableOpacity
+            key={cat.name}
+            activeOpacity={0.7}
+            onPress={() => onSelect(cat.name)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isSelected }}
+            accessibilityLabel={cat.name}
+            style={[
+              styles.tile,
+              isSelected && { borderColor: cat.color, backgroundColor: `${cat.color}14` },
+            ]}
+          >
+            <CategoryIcon name={cat.icon} color={cat.color} size={36} />
+            <Text
+              numberOfLines={2}
+              style={[styles.label, isSelected && { color: cat.color }, isSelected && styles.labelSelected]}
+            >
+              {cat.name}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+};
+
+const useStyles = makeStyles(colors => ({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -63,9 +68,9 @@ const styles = StyleSheet.create({
     lineHeight: 13,
     fontWeight: '500',
     textAlign: 'center',
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
   },
   labelSelected: {
     fontWeight: '700',
   },
-});
+}));

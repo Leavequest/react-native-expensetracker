@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { THEME } from '../../constants';
+import { makeStyles } from '../../context';
 
 interface SettingsGroupProps {
   title?: string;
@@ -12,6 +13,7 @@ interface SettingsGroupProps {
 
 /** Titled card of settings rows with hairlines between them. */
 export const SettingsGroup: React.FC<SettingsGroupProps> = ({ title, caption, style, children }) => {
+  const styles = useStyles();
   const rows = React.Children.toArray(children);
 
   return (
@@ -34,34 +36,34 @@ export const SettingsGroup: React.FC<SettingsGroupProps> = ({ title, caption, st
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   group: {
     marginHorizontal: THEME.spacing.lg,
     marginTop: THEME.spacing.lg,
   },
   title: {
     ...THEME.typography.captionBold,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
     marginBottom: THEME.spacing.xs,
     marginLeft: THEME.spacing.xs,
   },
   card: {
-    backgroundColor: THEME.colors.surface,
+    backgroundColor: colors.surface,
     borderRadius: THEME.borderRadius.lg,
     borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
+    borderColor: colors.surfaceBorder,
     overflow: 'hidden',
   },
   separator: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: THEME.colors.surfaceBorder,
+    backgroundColor: colors.surfaceBorder,
     marginLeft: THEME.spacing.lg,
   },
   caption: {
     ...THEME.typography.caption,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
     marginTop: THEME.spacing.xs,
     marginHorizontal: THEME.spacing.xs,
     lineHeight: 18,
   },
-});
+}));

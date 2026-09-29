@@ -1,28 +1,62 @@
+export const LIGHT_COLORS = {
+  primary: '#059669', // Emerald Green
+  primaryLight: '#D1FAE5',
+  primaryDark: '#065F46',
+  primaryBorder: '#A7F3D0',
+  accent: '#4F46E5', // Indigo
+  accentLight: '#EEF2FF',
+  accentDark: '#3730A3',
+  background: '#F8FAFC',
+  surface: '#FFFFFF',
+  surfaceSubtle: '#F1F5F9',
+  surfaceBorder: '#E2E8F0',
+  textPrimary: '#0F172A',
+  textSecondary: '#64748B',
+  textMuted: '#94A3B8',
+  textInverse: '#FFFFFF', // Text on filled, colored backgrounds (same in both modes)
+  danger: '#EF4444',
+  dangerLight: '#FEE2E2',
+  warning: '#F59E0B',
+  warningLight: '#FEF3C7',
+  warningDark: '#92400E',
+  success: '#10B981',
+  successLight: '#ECFDF5',
+  info: '#3B82F6',
+  infoLight: '#EFF6FF',
+};
+
+export type ThemeColors = typeof LIGHT_COLORS;
+
+// Same keys as the light palette: "Light" tints become dark tints, "Dark" shades become light ones
+export const DARK_COLORS: ThemeColors = {
+  primary: '#059669',
+  primaryLight: '#064E3B',
+  primaryDark: '#6EE7B7',
+  primaryBorder: '#047857',
+  accent: '#6366F1',
+  accentLight: '#1E1B4B',
+  accentDark: '#C7D2FE',
+  background: '#0B1120',
+  surface: '#151E2E',
+  surfaceSubtle: '#1E293B',
+  surfaceBorder: '#2A3547',
+  textPrimary: '#F1F5F9',
+  textSecondary: '#94A3B8',
+  textMuted: '#64748B',
+  textInverse: '#FFFFFF',
+  danger: '#F87171',
+  dangerLight: '#450A0A',
+  warning: '#FBBF24',
+  warningLight: '#422006',
+  warningDark: '#FDE68A',
+  success: '#34D399',
+  successLight: '#052E16',
+  info: '#60A5FA',
+  infoLight: '#172554',
+};
+
+/** Colors live in ThemeContext (they change with dark mode); everything here is mode-independent */
 export const THEME = {
-  colors: {
-    primary: '#059669', // Emerald Green
-    primaryLight: '#D1FAE5',
-    primaryDark: '#065F46',
-    accent: '#4F46E5', // Indigo
-    accentLight: '#EEF2FF',
-    accentDark: '#3730A3',
-    background: '#F8FAFC',
-    surface: '#FFFFFF',
-    surfaceSubtle: '#F1F5F9',
-    surfaceBorder: '#E2E8F0',
-    textPrimary: '#0F172A',
-    textSecondary: '#64748B',
-    textMuted: '#94A3B8',
-    textInverse: '#FFFFFF',
-    danger: '#EF4444',
-    dangerLight: '#FEE2E2',
-    warning: '#F59E0B',
-    warningLight: '#FEF3C7',
-    success: '#10B981',
-    successLight: '#ECFDF5',
-    info: '#3B82F6',
-    infoLight: '#EFF6FF',
-  },
   spacing: {
     xs: 4,
     sm: 8,

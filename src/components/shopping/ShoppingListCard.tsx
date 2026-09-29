@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { ShoppingList } from '../../types';
 import { THEME } from '../../constants';
-import { useUser } from '../../context';
+import { useUser, makeStyles } from '../../context';
 import { Avatar, Badge, ProgressBar } from '../common';
 
 interface ShoppingListCardProps {
@@ -16,6 +16,7 @@ export const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
   onPress,
   onDelete,
 }) => {
+  const styles = useStyles();
   const { formatAmount, householdUsers } = useUser();
 
   const totalItems = list.items.length;
@@ -108,15 +109,15 @@ export const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   card: {
-    backgroundColor: THEME.colors.surface,
+    backgroundColor: colors.surface,
     borderRadius: THEME.borderRadius.lg,
     padding: THEME.spacing.lg,
     marginHorizontal: THEME.spacing.lg,
     marginBottom: THEME.spacing.md,
     borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
+    borderColor: colors.surfaceBorder,
     ...THEME.shadows.card,
   },
   topRow: {
@@ -131,7 +132,7 @@ const styles = StyleSheet.create({
   },
   listName: {
     ...THEME.typography.titleSmall,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
     marginBottom: 4,
   },
   storeRow: {
@@ -141,7 +142,7 @@ const styles = StyleSheet.create({
   },
   codeText: {
     ...THEME.typography.caption,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
     fontSize: 11,
   },
   rightArea: {
@@ -149,12 +150,12 @@ const styles = StyleSheet.create({
   },
   estimatedTotalText: {
     ...THEME.typography.titleSmall,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
     fontWeight: '700',
   },
   estimatedLabel: {
     ...THEME.typography.caption,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
     fontSize: 10,
   },
   progressSection: {
@@ -167,11 +168,11 @@ const styles = StyleSheet.create({
   },
   progressText: {
     ...THEME.typography.caption,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
   },
   percentText: {
     ...THEME.typography.captionBold,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
   },
   progressBar: {
     marginTop: 2,
@@ -188,14 +189,14 @@ const styles = StyleSheet.create({
   },
   avatarBorder: {
     borderWidth: 1.5,
-    borderColor: THEME.colors.surface,
+    borderColor: colors.surface,
   },
   avatarOverlap: {
     marginLeft: -8,
   },
   collaboratorsLabel: {
     ...THEME.typography.caption,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
     marginLeft: 8,
     fontSize: 11,
   },
@@ -205,7 +206,7 @@ const styles = StyleSheet.create({
   },
   deleteText: {
     ...THEME.typography.caption,
-    color: THEME.colors.danger,
+    color: colors.danger,
     fontSize: 11,
   },
-});
+}));

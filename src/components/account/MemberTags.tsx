@@ -1,11 +1,12 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Badge } from '../common';
-import { THEME } from '../../constants';
 import { UserProfile } from '../../types';
+import { useTheme } from '../../context';
 
 /** "Owner", "Invited" and "Pending" tags for a household member. */
 export const MemberTags: React.FC<{ member: UserProfile }> = ({ member }) => {
+  const { colors } = useTheme();
   const labels = [
     member.role === 'owner' ? 'Owner' : null,
     member.origin === 'invited' ? 'Invited' : null,
@@ -21,7 +22,7 @@ export const MemberTags: React.FC<{ member: UserProfile }> = ({ member }) => {
           key={label}
           label={label}
           size="sm"
-          color={label === 'Pending' ? THEME.colors.textSecondary : undefined}
+          color={label === 'Pending' ? colors.textSecondary : undefined}
         />
       ))}
     </View>

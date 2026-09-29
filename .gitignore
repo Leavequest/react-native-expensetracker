@@ -83,6 +83,7 @@ yarn-error.log
 .windsurfrules
 .copilot/
 .continue/
+.superpowers/
 
 # Environment files
 .env

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import {
   Button,
   Chip,
@@ -11,7 +11,7 @@ import {
 } from '../common';
 import { PAYMENT_METHODS, THEME } from '../../constants';
 import { ExpenseCategory, PaymentMethod } from '../../types';
-import { useExpense, useUser } from '../../context';
+import { useExpense, useUser, makeStyles } from '../../context';
 import { getCurrencySymbol, parseCurrencyInput } from '../../utils';
 import { CategoryGrid } from './CategoryGrid';
 
@@ -24,6 +24,7 @@ export const ExpenseFormModal: React.FC<ExpenseFormModalProps> = ({
   visible,
   onClose,
 }) => {
+  const styles = useStyles();
   const { addExpense } = useExpense();
   const { activeUser, currency } = useUser();
 
@@ -147,7 +148,7 @@ export const ExpenseFormModal: React.FC<ExpenseFormModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   amountRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
   currencySymbol: {
     fontSize: 32,
     fontWeight: '700',
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
     marginRight: THEME.spacing.sm,
   },
   amountInput: {
@@ -165,7 +166,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderWidth: 0,
     borderBottomWidth: 2,
-    borderBottomColor: THEME.colors.primary,
+    borderBottomColor: colors.primary,
     borderRadius: 0,
     fontSize: 40,
     fontWeight: '800',
@@ -180,4 +181,4 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: THEME.spacing.xl,
   },
-});
+}));

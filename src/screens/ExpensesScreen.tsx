@@ -15,11 +15,12 @@ import {
   ExpenseFormModal,
 } from '../components/expenses';
 import { EXPENSE_CATEGORIES, THEME } from '../constants';
-import { useExpense, useUser } from '../context';
+import { useExpense, useUser, makeStyles } from '../context';
 import { Expense, ExpenseCategory } from '../types';
 import { groupByDay } from '../utils';
 
 export const ExpensesScreen: React.FC = () => {
+  const styles = useStyles();
   const { expenses, deleteExpense, restoreExpense } = useExpense();
   const { formatAmount } = useUser();
   const [selectedCategory, setSelectedCategory] = useState<ExpenseCategory | 'All'>('All');
@@ -129,12 +130,15 @@ export const ExpensesScreen: React.FC = () => {
   );
 };
 
-const RowSeparator: React.FC = () => <View style={styles.separator} />;
+const RowSeparator: React.FC = () => {
+  const styles = useStyles();
+  return <View style={styles.separator} />;
+};
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   container: {
     flex: 1,
-    backgroundColor: THEME.colors.background,
+    backgroundColor: colors.background,
   },
   listContent: {
     paddingBottom: 90,
@@ -145,7 +149,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...THEME.typography.titleSmall,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
     marginHorizontal: THEME.spacing.lg,
     marginBottom: THEME.spacing.sm,
   },
@@ -163,17 +167,17 @@ const styles = StyleSheet.create({
   },
   dayTitle: {
     ...THEME.typography.captionBold,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   dayTotal: {
     ...THEME.typography.captionBold,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
   },
   separator: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: THEME.colors.surfaceBorder,
+    backgroundColor: colors.surfaceBorder,
     marginLeft: THEME.spacing.lg + 44 + THEME.spacing.md,
   },
-});
+}));

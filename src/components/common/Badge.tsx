@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { View, Text, ViewStyle, TextStyle, StyleSheet } from 'react-native';
 import { THEME } from '../../constants';
 import { Icon, IconName } from './Icon';
+import { useTheme } from '../../context';
 
 interface BadgeProps {
   label: string;
@@ -22,10 +23,11 @@ export const Badge: React.FC<BadgeProps> = ({
   style,
   textStyle,
 }) => {
+  const { colors } = useTheme();
   const isSm = size === 'sm';
   const resolvedBg =
-    backgroundColor || (color ? `${color}15` : THEME.colors.primaryLight);
-  const resolvedColor = color || THEME.colors.primaryDark;
+    backgroundColor || (color ? `${color}15` : colors.primaryLight);
+  const resolvedColor = color || colors.primaryDark;
 
   return (
     <View

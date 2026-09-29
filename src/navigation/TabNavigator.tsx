@@ -1,11 +1,12 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ExpensesScreen, AnalyticsScreen, SettingsScreen } from '../screens';
 import { THEME } from '../constants';
 import { Icon, IconName } from '../components/common';
 import { ShoppingStack } from './ShoppingStack';
 import { RootTabParamList } from './types';
+import { makeStyles, useTheme } from '../context';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -15,11 +16,15 @@ interface TabIconProps {
   color: string;
 }
 
-const TabIcon: React.FC<TabIconProps> = ({ name, focused, color }) => (
-  <View style={[styles.iconContainer, focused && styles.iconContainerActive]}>
-    <Icon name={name} size={20} color={color} strokeWidth={focused ? 2.4 : 2} />
-  </View>
-);
+const TabIcon: React.FC<TabIconProps> = ({ name, focused, color }) => {
+  const styles = useStyles();
+
+  return (
+    <View style={[styles.iconContainer, focused && styles.iconContainerActive]}>
+      <Icon name={name} size={20} color={color} strokeWidth={focused ? 2.4 : 2} />
+    </View>
+  );
+};
 
 /** Builds a stable `tabBarIcon` renderer for a tab. */
 const tabIcon =
@@ -27,45 +32,50 @@ const tabIcon =
   ({ focused, color }: { focused: boolean; color: string }) =>
     <TabIcon name={name} focused={focused} color={color} />;
 
-export const TabNavigator: React.FC = () => (
-  <Tab.Navigator
-    screenOptions={({ route }) => ({
-      headerShown: false,
-      tabBarButtonTestID: `tab-${route.name}`,
-      tabBarActiveTintColor: THEME.colors.primaryDark,
-      tabBarInactiveTintColor: THEME.colors.textMuted,
-      tabBarLabelStyle: styles.tabLabel,
-      tabBarStyle: styles.tabBar,
-    })}
-  >
-    <Tab.Screen
-      name="Expenses"
-      component={ExpensesScreen}
-      options={{ tabBarIcon: tabIcon('wallet') }}
-    />
-    <Tab.Screen
-      name="Shopping"
-      component={ShoppingStack}
-      options={{ tabBarIcon: tabIcon('cart') }}
-    />
-    <Tab.Screen
-      name="Analytics"
-      component={AnalyticsScreen}
-      options={{ tabBarIcon: tabIcon('chart') }}
-    />
-    <Tab.Screen
-      name="Settings"
-      component={SettingsScreen}
-      options={{ tabBarIcon: tabIcon('settings') }}
-    />
-  </Tab.Navigator>
-);
+export const TabNavigator: React.FC = () => {
+  const { colors } = useTheme();
+  const styles = useStyles();
 
-const styles = StyleSheet.create({
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarButtonTestID: `tab-${route.name}`,
+        tabBarActiveTintColor: colors.primaryDark,
+        tabBarInactiveTintColor: colors.textMuted,
+        tabBarLabelStyle: styles.tabLabel,
+        tabBarStyle: styles.tabBar,
+      })}
+    >
+      <Tab.Screen
+        name="Expenses"
+        component={ExpensesScreen}
+        options={{ tabBarIcon: tabIcon('wallet') }}
+      />
+      <Tab.Screen
+        name="Shopping"
+        component={ShoppingStack}
+        options={{ tabBarIcon: tabIcon('cart') }}
+      />
+      <Tab.Screen
+        name="Analytics"
+        component={AnalyticsScreen}
+        options={{ tabBarIcon: tabIcon('chart') }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ tabBarIcon: tabIcon('settings') }}
+      />
+    </Tab.Navigator>
+  );
+};
+
+const useStyles = makeStyles(colors => ({
   tabBar: {
-    backgroundColor: THEME.colors.surface,
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
-    borderTopColor: THEME.colors.surfaceBorder,
+    borderTopColor: colors.surfaceBorder,
     paddingTop: 6,
     ...THEME.shadows.card,
   },
@@ -75,10 +85,10 @@ const styles = StyleSheet.create({
     borderRadius: THEME.borderRadius.full,
   },
   iconContainerActive: {
-    backgroundColor: THEME.colors.primaryLight,
+    backgroundColor: colors.primaryLight,
   },
   tabLabel: {
     fontSize: 11,
     fontWeight: '600',
   },
-});
+}));

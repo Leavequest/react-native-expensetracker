@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { CategorySpending } from '../../context';
+import { View, Text } from 'react-native';
+import { CategorySpending, makeStyles } from '../../context';
 import { getCategoryInfo, THEME } from '../../constants';
 import { useUser } from '../../context';
 import { CategoryIcon, ProgressBar } from '../common';
@@ -12,6 +12,7 @@ interface CategorySpendingListProps {
 export const CategorySpendingList: React.FC<CategorySpendingListProps> = ({
   categories,
 }) => {
+  const styles = useStyles();
   const { formatAmount } = useUser();
 
   if (categories.length === 0) {
@@ -69,18 +70,18 @@ export const CategorySpendingList: React.FC<CategorySpendingListProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   container: {
     paddingHorizontal: THEME.spacing.lg,
     paddingVertical: THEME.spacing.sm,
   },
   itemRow: {
-    backgroundColor: THEME.colors.surface,
+    backgroundColor: colors.surface,
     padding: THEME.spacing.md,
     borderRadius: THEME.borderRadius.md,
     marginBottom: THEME.spacing.sm,
     borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
   headerRow: {
     flexDirection: 'row',
@@ -95,7 +96,7 @@ const styles = StyleSheet.create({
   },
   categoryName: {
     ...THEME.typography.bodyBold,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
   },
   amountInfo: {
     flexDirection: 'row',
@@ -104,11 +105,11 @@ const styles = StyleSheet.create({
   },
   amountText: {
     ...THEME.typography.bodyBold,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
   },
   percentText: {
     ...THEME.typography.captionBold,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
   },
   progressBar: {
     marginVertical: 4,
@@ -121,15 +122,15 @@ const styles = StyleSheet.create({
   },
   limitText: {
     ...THEME.typography.caption,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
   },
   limitStatus: {
     ...THEME.typography.captionBold,
-    color: THEME.colors.success,
+    color: colors.success,
     fontSize: 11,
   },
   limitExceeded: {
-    color: THEME.colors.danger,
+    color: colors.danger,
   },
   emptyContainer: {
     padding: THEME.spacing.xl,
@@ -137,6 +138,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...THEME.typography.body,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
   },
-});
+}));

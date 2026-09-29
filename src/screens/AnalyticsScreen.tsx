@@ -1,12 +1,13 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { Header, Card, CategoryIcon } from '../components/common';
 import { CategorySpendingList, SpendingDonut } from '../components/expenses';
 import { getCategoryInfo, THEME } from '../constants';
-import { useExpense, useUser } from '../context';
+import { useExpense, useUser, makeStyles } from '../context';
 import { formatMonthName, getCurrentMonthKey } from '../utils';
 
 export const AnalyticsScreen: React.FC = () => {
+  const styles = useStyles();
   const { currentMonthExpenses, categoryBreakdown, totalSpentThisMonth, budget } =
     useExpense();
   const { formatAmount, currency } = useUser();
@@ -104,10 +105,10 @@ export const AnalyticsScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   container: {
     flex: 1,
-    backgroundColor: THEME.colors.background,
+    backgroundColor: colors.background,
   },
   scrollContent: {
     paddingBottom: 40,
@@ -124,26 +125,26 @@ const styles = StyleSheet.create({
   },
   kpiLabel: {
     ...THEME.typography.captionBold,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
     marginBottom: 4,
     textTransform: 'uppercase',
   },
   kpiValue: {
     fontSize: 20,
     fontWeight: '800',
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
     marginBottom: 2,
   },
   kpiSub: {
     ...THEME.typography.caption,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
     fontSize: 11,
   },
   groceriesCard: {
     marginHorizontal: THEME.spacing.lg,
     marginTop: THEME.spacing.md,
     marginBottom: THEME.spacing.sm,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
   },
   groceriesHeader: {
     flexDirection: 'row',
@@ -156,28 +157,28 @@ const styles = StyleSheet.create({
   },
   groceriesTitle: {
     ...THEME.typography.titleSmall,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
   },
   groceriesSubtitle: {
     ...THEME.typography.caption,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
   },
   groceriesStatsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingTop: THEME.spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: THEME.colors.surfaceBorder,
+    borderTopColor: colors.surfaceBorder,
   },
   statLabel: {
     ...THEME.typography.caption,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
     marginBottom: 2,
   },
   statValue: {
     fontSize: 16,
     fontWeight: '700',
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
   },
   statRight: {
     alignItems: 'flex-end',
@@ -188,9 +189,9 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     ...THEME.typography.titleSmall,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
     marginHorizontal: THEME.spacing.lg,
     marginTop: THEME.spacing.md,
     marginBottom: THEME.spacing.xs,
   },
-});
+}));

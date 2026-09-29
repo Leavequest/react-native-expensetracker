@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { Avatar, Icon } from '../../components/common';
 import { THEME } from '../../constants';
-import { useUser } from '../../context';
+import { useUser, makeStyles, useTheme } from '../../context';
 import { UserProfile } from '../../types';
 import { SettingsSection } from './SettingsSection';
 import { AddMemberModal } from './AddMemberModal';
 import { DeleteMemberModal } from '../../components/account/DeleteMemberModal';
 
 export const HouseholdSection: React.FC = () => {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { activeUser, householdUsers, setActiveUser } = useUser();
 
   const [addMemberVisible, setAddMemberVisible] = useState(false);
@@ -53,7 +55,7 @@ export const HouseholdSection: React.FC = () => {
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 accessibilityLabel={`Delete ${user.name}`}
               >
-                <Icon name="close" size={16} color={THEME.colors.textSecondary} />
+                <Icon name="close" size={16} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
           );
@@ -65,7 +67,7 @@ export const HouseholdSection: React.FC = () => {
         onPress={() => setAddMemberVisible(true)}
         style={styles.addMemberBtn}
       >
-        <Icon name="plus" size={16} color={THEME.colors.primary} strokeWidth={2.5} />
+        <Icon name="plus" size={16} color={colors.primary} strokeWidth={2.5} />
         <Text style={styles.addMemberBtnText}>Add Household Member</Text>
       </TouchableOpacity>
 
@@ -75,7 +77,7 @@ export const HouseholdSection: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   usersList: {
     gap: 8,
   },
@@ -85,12 +87,12 @@ const styles = StyleSheet.create({
     padding: THEME.spacing.sm,
     borderRadius: THEME.borderRadius.md,
     borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
-    backgroundColor: THEME.colors.surfaceSubtle,
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.surfaceSubtle,
   },
   userRowActive: {
-    borderColor: THEME.colors.primary,
-    backgroundColor: THEME.colors.primaryLight,
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryLight,
   },
   userMainTouchable: {
     flex: 1,
@@ -105,26 +107,26 @@ const styles = StyleSheet.create({
   },
   userName: {
     ...THEME.typography.bodyBold,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
   },
   userEmail: {
     ...THEME.typography.caption,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
   },
   currentUserBadge: {
-    backgroundColor: THEME.colors.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: THEME.borderRadius.full,
   },
   currentUserText: {
-    color: THEME.colors.textInverse,
+    color: colors.textInverse,
     fontSize: 11,
     fontWeight: '700',
   },
   switchText: {
     ...THEME.typography.captionBold,
-    color: THEME.colors.primary,
+    color: colors.primary,
   },
   deleteUserButton: {
     padding: 8,
@@ -132,9 +134,9 @@ const styles = StyleSheet.create({
     borderRadius: THEME.borderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: THEME.colors.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
   addMemberBtn: {
     marginTop: THEME.spacing.md,
@@ -145,13 +147,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderWidth: 1.5,
     borderStyle: 'dashed',
-    borderColor: THEME.colors.primary,
+    borderColor: colors.primary,
     borderRadius: THEME.borderRadius.md,
-    backgroundColor: THEME.colors.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
   },
   addMemberBtnText: {
     ...THEME.typography.bodyBold,
-    color: THEME.colors.primary,
+    color: colors.primary,
     fontSize: 14,
   },
-});
+}));

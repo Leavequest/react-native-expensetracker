@@ -1,5 +1,5 @@
 import { toast } from 'sonner-native';
-import { THEME } from '../../constants';
+import { LIGHT_COLORS } from '../../constants';
 
 const UNDO_DURATION_MS = 5000;
 
@@ -24,6 +24,6 @@ export function showUndoToast(message: string, onUndo: () => void): void {
         toast.dismiss(id);
       },
     },
-    actionButtonStyle: { backgroundColor: THEME.colors.primary },
+    actionButtonStyle: { backgroundColor: LIGHT_COLORS.primary },
   });
 }

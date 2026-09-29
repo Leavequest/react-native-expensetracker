@@ -1,11 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { Card, ProgressBar } from '../common';
 import { THEME } from '../../constants';
-import { useExpense, useUser } from '../../context';
+import { useExpense, useUser, makeStyles, useTheme } from '../../context';
 import { formatMonthName, getCurrentMonthKey } from '../../utils';
 
 export const BudgetOverviewCard: React.FC = () => {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { totalSpentThisMonth, budgetRemaining, budgetUsagePercent, budget } =
     useExpense();
   const { formatAmount } = useUser();
@@ -13,9 +15,9 @@ export const BudgetOverviewCard: React.FC = () => {
   const currentMonth = formatMonthName(getCurrentMonthKey());
 
   const getProgressColor = () => {
-    if (budgetUsagePercent > 95) return THEME.colors.danger;
-    if (budgetUsagePercent > 75) return THEME.colors.warning;
-    return THEME.colors.primary;
+    if (budgetUsagePercent > 95) return colors.danger;
+    if (budgetUsagePercent > 75) return colors.warning;
+    return colors.primary;
   };
 
   return (
@@ -47,10 +49,10 @@ export const BudgetOverviewCard: React.FC = () => {
               {
                 color:
                   budget.totalLimit <= 0
-                    ? THEME.colors.textMuted
+                    ? colors.textMuted
                     : totalSpentThisMonth > budget.totalLimit
-                    ? THEME.colors.danger
-                    : THEME.colors.primaryDark,
+                    ? colors.danger
+                    : colors.primaryDark,
               },
             ]}
           >
@@ -85,9 +87,9 @@ export const BudgetOverviewCard: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     marginHorizontal: THEME.spacing.lg,
     marginVertical: THEME.spacing.md,
     borderRadius: THEME.borderRadius.lg,
@@ -100,16 +102,16 @@ const styles = StyleSheet.create({
   },
   monthLabel: {
     ...THEME.typography.captionBold,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   cardTitle: {
     ...THEME.typography.titleMedium,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
   },
   percentBadge: {
-    backgroundColor: THEME.colors.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: THEME.borderRadius.full,
@@ -126,20 +128,20 @@ const styles = StyleSheet.create({
   },
   spentLabel: {
     ...THEME.typography.caption,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
     marginBottom: 2,
   },
   spentAmount: {
     fontSize: 26,
     fontWeight: '800',
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
   },
   remainingBlock: {
     alignItems: 'flex-end',
   },
   remainingLabel: {
     ...THEME.typography.caption,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
     marginBottom: 2,
   },
   remainingAmount: {
@@ -157,22 +159,22 @@ const styles = StyleSheet.create({
   },
   limitText: {
     ...THEME.typography.caption,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
   },
   limitBold: {
     fontWeight: '600',
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
   },
   statusGood: {
     ...THEME.typography.captionBold,
-    color: THEME.colors.success,
+    color: colors.success,
   },
   statusNoBudget: {
     ...THEME.typography.captionBold,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
   },
   statusExceeded: {
     ...THEME.typography.captionBold,
-    color: THEME.colors.danger,
+    color: colors.danger,
   },
-});
+}));

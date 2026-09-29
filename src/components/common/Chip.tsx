@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   ScrollView,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
@@ -9,6 +8,7 @@ import {
 } from 'react-native';
 import { THEME } from '../../constants';
 import { Icon, IconName } from './Icon';
+import { makeStyles, useTheme } from '../../context';
 
 interface ChipProps {
   label: string;
@@ -26,32 +26,38 @@ export const Chip: React.FC<ChipProps> = ({
   onPress,
   icon,
   selected = false,
-  selectedColor = THEME.colors.primary,
+  selectedColor: selectedColorProp,
   style,
-}) => (
-  <TouchableOpacity
-    activeOpacity={0.7}
-    onPress={onPress}
-    accessibilityRole="button"
-    accessibilityState={{ selected }}
-    style={[
-      styles.chip,
-      selected && { backgroundColor: selectedColor, borderColor: selectedColor },
-      style,
-    ]}
-  >
-    {icon ? (
-      <View style={styles.icon}>
-        <Icon
-          name={icon}
-          size={14}
-          color={selected ? THEME.colors.textInverse : selectedColor}
-        />
-      </View>
-    ) : null}
-    <Text style={[styles.text, selected && styles.textSelected]}>{label}</Text>
-  </TouchableOpacity>
-);
+}) => {
+  const { colors } = useTheme();
+  const selectedColor = selectedColorProp ?? colors.primary;
+  const styles = useStyles();
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      style={[
+        styles.chip,
+        selected && { backgroundColor: selectedColor, borderColor: selectedColor },
+        style,
+      ]}
+    >
+      {icon ? (
+        <View style={styles.icon}>
+          <Icon
+            name={icon}
+            size={14}
+            color={selected ? colors.textInverse : selectedColor}
+          />
+        </View>
+      ) : null}
+      <Text style={[styles.text, selected && styles.textSelected]}>{label}</Text>
+    </TouchableOpacity>
+  );
+};
 
 interface ChipRowProps {
   children: React.ReactNode;
@@ -59,17 +65,21 @@ interface ChipRowProps {
 }
 
 /** Horizontally scrolling row of chips. */
-export const ChipRow: React.FC<ChipRowProps> = ({ children, contentContainerStyle }) => (
-  <ScrollView
-    horizontal
-    showsHorizontalScrollIndicator={false}
-    contentContainerStyle={[styles.row, contentContainerStyle]}
-  >
-    {children}
-  </ScrollView>
-);
+export const ChipRow: React.FC<ChipRowProps> = ({ children, contentContainerStyle }) => {
+  const styles = useStyles();
 
-const styles = StyleSheet.create({
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={[styles.row, contentContainerStyle]}
+    >
+      {children}
+    </ScrollView>
+  );
+};
+
+const useStyles = makeStyles(colors => ({
   row: {
     flexDirection: 'row',
     gap: 8,
@@ -82,19 +92,19 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: THEME.borderRadius.full,
     borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
-    backgroundColor: THEME.colors.surfaceSubtle,
+    borderColor: colors.surfaceBorder,
+    backgroundColor: colors.surfaceSubtle,
   },
   icon: {
     marginRight: 6,
   },
   text: {
     fontSize: 13,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
     fontWeight: '500',
   },
   textSelected: {
-    color: THEME.colors.textInverse,
+    color: colors.textInverse,
     fontWeight: '700',
   },
-});
+}));

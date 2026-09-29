@@ -28,6 +28,7 @@ describe('persistence', () => {
       user: undefined,
       expenses: undefined,
       shopping: undefined,
+      theme: undefined,
     });
   });
 
@@ -57,6 +58,7 @@ describe('persistence', () => {
       user: undefined,
       expenses: undefined,
       shopping: undefined,
+      theme: undefined,
     });
   });
 

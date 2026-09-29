@@ -8,7 +8,7 @@ import React, {
   ReactNode,
 } from 'react';
 import { ShoppingItem, ShoppingList } from '../types';
-import { INITIAL_SHOPPING_LISTS, THEME } from '../constants';
+import { INITIAL_SHOPPING_LISTS, LIGHT_COLORS } from '../constants';
 import { generateId } from '../utils';
 import { PersistedShoppingState, saveSlice } from '../storage/persistence';
 import { useExpense } from './ExpenseContext';
@@ -94,7 +94,7 @@ export const ShoppingListProvider: React.FC<ShoppingListProviderProps> = ({
         id: generateId('list'),
         name,
         storeName,
-        color: color || THEME.colors.primary,
+        color: color || LIGHT_COLORS.primary,
         shareCode: generateShareCode(storeName, lists),
         collaboratorIds: [activeUserId],
         items: [],

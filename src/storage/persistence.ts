@@ -31,15 +31,22 @@ export interface PersistedShoppingState {
   lists: ShoppingList[];
 }
 
+export type ThemeMode = 'light' | 'dark';
+
+export interface PersistedThemeState {
+  mode: ThemeMode;
+}
+
 export interface PersistedAppState {
   user?: PersistedUserState;
   expenses?: PersistedExpenseState;
   shopping?: PersistedShoppingState;
+  theme?: PersistedThemeState;
 }
 
 type SliceKey = keyof PersistedAppState;
 
-const SLICE_KEYS: SliceKey[] = ['user', 'expenses', 'shopping'];
+const SLICE_KEYS: SliceKey[] = ['user', 'expenses', 'shopping', 'theme'];
 
 interface Envelope {
   version: number;
@@ -87,6 +94,12 @@ function parseShopping(raw: string | null | undefined): PersistedShoppingState |
   return data as unknown as PersistedShoppingState;
 }
 
+function parseTheme(raw: string | null | undefined): PersistedThemeState | undefined {
+  const data = unwrap(raw);
+  if (!data || (data.mode !== 'light' && data.mode !== 'dark')) return undefined;
+  return data as unknown as PersistedThemeState;
+}
+
 /**
  * Loads everything saved on the device. Any slice that is missing or
  * unreadable is left undefined so its provider falls back to defaults.
@@ -98,6 +111,7 @@ export async function loadAppState(): Promise<PersistedAppState> {
       user: parseUser(raw.user),
       expenses: parseExpenses(raw.expenses),
       shopping: parseShopping(raw.shopping),
+      theme: parseTheme(raw.theme),
     };
   } catch (error) {
     console.warn('[persistence] Failed to load saved data, using defaults', error);

@@ -19,6 +19,7 @@ import Info from 'lucide-react-native/icons/info';
 import Lightbulb from 'lucide-react-native/icons/lightbulb';
 import Link from 'lucide-react-native/icons/link';
 import Milk from 'lucide-react-native/icons/milk';
+import Moon from 'lucide-react-native/icons/moon';
 import Package from 'lucide-react-native/icons/package';
 import Pill from 'lucide-react-native/icons/pill';
 import Plus from 'lucide-react-native/icons/plus';
@@ -32,6 +33,7 @@ import Snowflake from 'lucide-react-native/icons/snowflake';
 import Sparkles from 'lucide-react-native/icons/sparkles';
 import SprayCan from 'lucide-react-native/icons/spray-can';
 import Store from 'lucide-react-native/icons/store';
+import Sun from 'lucide-react-native/icons/sun';
 import Ticket from 'lucide-react-native/icons/ticket';
 import TramFront from 'lucide-react-native/icons/tram-front';
 import Trash from 'lucide-react-native/icons/trash';
@@ -42,7 +44,7 @@ import UtensilsCrossed from 'lucide-react-native/icons/utensils-crossed';
 import Wallet from 'lucide-react-native/icons/wallet';
 import Wheat from 'lucide-react-native/icons/wheat';
 import X from 'lucide-react-native/icons/x';
-import { THEME } from '../../constants';
+import { useTheme } from '../../context';
 
 const ICONS = {
   // General UI
@@ -68,6 +70,8 @@ const ICONS = {
   info: Info,
   link: Link,
   warning: TriangleAlert,
+  sun: Sun,
+  moon: Moon,
   // Expense categories
   home: House,
   bulb: Lightbulb,
@@ -103,9 +107,10 @@ interface IconProps {
 export const Icon: React.FC<IconProps> = ({
   name,
   size = 18,
-  color = THEME.colors.textPrimary,
+  color,
   strokeWidth = 2,
 }) => {
+  const { colors } = useTheme();
   const Glyph = ICONS[name];
-  return <Glyph size={size} color={color} strokeWidth={strokeWidth} />;
+  return <Glyph size={size} color={color ?? colors.textPrimary} strokeWidth={strokeWidth} />;
 };

@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { THEME } from '../../constants';
-import { useUser } from '../../context';
+import { useUser, makeStyles, useTheme } from '../../context';
 import { useAccountSheet } from '../account/accountSheetContext';
 import { Avatar } from './Avatar';
+import { Icon } from './Icon';
 
 interface HeaderProps {
   title: string;
@@ -13,6 +14,8 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ title, subtitle, rightAction }) => {
+  const styles = useStyles();
+  const { colors, isDark, toggleTheme } = useTheme();
   const { activeUser } = useUser();
   const { openAccountSheet } = useAccountSheet();
   const insets = useSafeAreaInsets();
@@ -27,8 +30,21 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle, rightAction }) 
       <View style={styles.rightSection}>
         <TouchableOpacity
           activeOpacity={0.7}
+          onPress={toggleTheme}
+          style={styles.iconButton}
+          accessibilityRole="button"
+          accessibilityLabel={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+          testID="theme-toggle"
+        >
+          <View style={styles.themeCircle}>
+            <Icon name={isDark ? 'sun' : 'moon'} size={18} color={colors.textSecondary} />
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          activeOpacity={0.7}
           onPress={openAccountSheet}
-          style={styles.avatarButton}
+          style={styles.iconButton}
           accessibilityRole="button"
           accessibilityLabel={`Account, ${activeUser.name}`}
         >
@@ -41,27 +57,27 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle, rightAction }) 
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: THEME.spacing.lg,
     paddingVertical: THEME.spacing.md,
-    backgroundColor: THEME.colors.surface,
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: THEME.colors.surfaceBorder,
+    borderBottomColor: colors.surfaceBorder,
   },
   titleSection: {
     flex: 1,
   },
   title: {
     ...THEME.typography.titleMedium,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
   },
   subtitle: {
     ...THEME.typography.caption,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
     marginTop: 2,
   },
   rightSection: {
@@ -69,14 +85,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  // 44pt touch target around the 32pt avatar
-  avatarButton: {
+  // 44pt touch target around the 32pt avatar / theme toggle
+  iconButton: {
     width: 44,
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  themeCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surfaceSubtle,
+  },
   actionWrapper: {
     marginLeft: 4,
   },
-});
+}));

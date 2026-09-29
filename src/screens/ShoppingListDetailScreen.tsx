@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { GroceryAisle, ShoppingItem } from '../types';
 import { getAisleInfo, GROCERY_AISLES, THEME } from '../constants';
-import { useShoppingList, useUser } from '../context';
+import { useShoppingList, useUser, makeStyles, useTheme } from '../context';
 import {
   Badge,
   Button,
@@ -27,18 +27,23 @@ interface ShareHeaderButtonProps {
   onPress: () => void;
 }
 
-const ShareHeaderButton: React.FC<ShareHeaderButtonProps> = ({ onPress }) => (
-  <TouchableOpacity
-    activeOpacity={0.7}
-    onPress={onPress}
-    style={styles.shareIconButton}
-    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-    accessibilityRole="button"
-    accessibilityLabel="Share list"
-  >
-    <Icon name="share" size={20} color={THEME.colors.primary} />
-  </TouchableOpacity>
-);
+const ShareHeaderButton: React.FC<ShareHeaderButtonProps> = ({ onPress }) => {
+  const { colors } = useTheme();
+  const styles = useStyles();
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
+      style={styles.shareIconButton}
+      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+      accessibilityRole="button"
+      accessibilityLabel="Share list"
+    >
+      <Icon name="share" size={20} color={colors.primary} />
+    </TouchableOpacity>
+  );
+};
 
 /** Shared enter/leave/move animation for rows, so ticking an item glides it between sections. */
 const rowAnimation = {
@@ -50,6 +55,8 @@ const rowAnimation = {
 export const ShoppingListDetailScreen: React.FC<
   ShoppingStackScreenProps<'ShoppingListDetail'>
 > = ({ navigation, route }) => {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { listId } = route.params;
   const { lists, toggleItemCompleted, deleteItem, restoreItem, finishShoppingTrip } =
     useShoppingList();
@@ -223,11 +230,11 @@ export const ShoppingListDetailScreen: React.FC<
                   accessibilityRole="button"
                   accessibilityState={{ expanded: cartExpanded }}
                 >
-                  <Icon name="cart" size={14} color={THEME.colors.primary} />
+                  <Icon name="cart" size={14} color={colors.primary} />
                   <Text style={[styles.aisleTitle, styles.cartTitle]}>In cart</Text>
                   <Text style={styles.aisleCount}>({inCart.length})</Text>
                   <View style={[styles.chevron, cartExpanded && styles.chevronOpen]}>
-                    <Icon name="chevron-down" size={16} color={THEME.colors.textMuted} />
+                    <Icon name="chevron-down" size={16} color={colors.textMuted} />
                   </View>
                 </TouchableOpacity>
                 {cartExpanded ? (
@@ -259,10 +266,10 @@ export const ShoppingListDetailScreen: React.FC<
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   container: {
     flex: 1,
-    backgroundColor: THEME.colors.background,
+    backgroundColor: colors.background,
   },
   notFoundContainer: {
     flex: 1,
@@ -272,7 +279,7 @@ const styles = StyleSheet.create({
   },
   notFoundText: {
     ...THEME.typography.titleMedium,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
     marginBottom: 16,
   },
   shareIconButton: {
@@ -282,12 +289,12 @@ const styles = StyleSheet.create({
     paddingBottom: 90,
   },
   headerCard: {
-    backgroundColor: THEME.colors.surface,
+    backgroundColor: colors.surface,
     margin: THEME.spacing.lg,
     padding: THEME.spacing.lg,
     borderRadius: THEME.borderRadius.lg,
     borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
+    borderColor: colors.surfaceBorder,
     ...THEME.shadows.card,
   },
   storeBadgeRow: {
@@ -297,7 +304,7 @@ const styles = StyleSheet.create({
     marginBottom: THEME.spacing.md,
   },
   codePill: {
-    backgroundColor: THEME.colors.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: THEME.borderRadius.sm,
@@ -305,7 +312,7 @@ const styles = StyleSheet.create({
   codePillText: {
     fontSize: 11,
     fontWeight: '600',
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
   },
   progressRow: {
     flexDirection: 'row',
@@ -315,17 +322,17 @@ const styles = StyleSheet.create({
   },
   progressCounter: {
     ...THEME.typography.captionBold,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
   },
   cartTotalText: {
     ...THEME.typography.caption,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
     marginTop: 2,
   },
   progressPercent: {
     fontSize: 18,
     fontWeight: '800',
-    color: THEME.colors.primary,
+    color: colors.primary,
   },
   progressBar: {
     marginVertical: THEME.spacing.sm,
@@ -335,7 +342,7 @@ const styles = StyleSheet.create({
   },
   allDoneText: {
     ...THEME.typography.body,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
     textAlign: 'center',
     marginBottom: THEME.spacing.md,
   },
@@ -351,13 +358,13 @@ const styles = StyleSheet.create({
   },
   aisleTitle: {
     ...THEME.typography.captionBold,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   aisleCount: {
     ...THEME.typography.caption,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
   },
   cartHeader: {
     flexDirection: 'row',
@@ -367,7 +374,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   cartTitle: {
-    color: THEME.colors.primary,
+    color: colors.primary,
   },
   chevron: {
     marginLeft: 'auto',
@@ -377,6 +384,6 @@ const styles = StyleSheet.create({
   },
   itemsWrapper: {
     borderTopWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
-});
+}));

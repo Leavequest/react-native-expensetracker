@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import {
   Avatar,
   Button,
@@ -12,7 +12,7 @@ import {
   showSuccessToast,
 } from '../common';
 import { THEME } from '../../constants';
-import { OWNER_ONLY_CAPTION, usePermission, useUser } from '../../context';
+import { OWNER_ONLY_CAPTION, usePermission, useUser, makeStyles, useTheme } from '../../context';
 import { DeleteMemberModal } from './DeleteMemberModal';
 import { UserProfile } from '../../types';
 import { AVATAR_COLORS, getInitials, isOwner } from '../../utils';
@@ -25,6 +25,8 @@ interface ProfileSheetProps {
 }
 
 export const ProfileSheet: React.FC<ProfileSheetProps> = ({ member, onClose }) => {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { activeUser, updateUser } = useUser();
   const canEditOthers = usePermission('editOtherProfile').allowed;
   const canRemove = usePermission('removeMember').allowed;
@@ -130,7 +132,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ member, onClose }) =
                     style={[styles.swatch, { backgroundColor: color }, selected && styles.swatchSelected]}
                   >
                     {selected ? (
-                      <Icon name="check" size={16} color={THEME.colors.textInverse} strokeWidth={3} />
+                      <Icon name="check" size={16} color={colors.textInverse} strokeWidth={3} />
                     ) : null}
                   </TouchableOpacity>
                 );
@@ -169,7 +171,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = ({ member, onClose }) =
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   content: {
     paddingBottom: THEME.spacing.md,
   },
@@ -196,7 +198,7 @@ const styles = StyleSheet.create({
   },
   swatchSelected: {
     borderWidth: 3,
-    borderColor: THEME.colors.textPrimary,
+    borderColor: colors.textPrimary,
   },
   saveButton: {
     width: '100%',
@@ -204,7 +206,7 @@ const styles = StyleSheet.create({
   },
   caption: {
     ...THEME.typography.caption,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: THEME.spacing.sm,
   },
@@ -212,4 +214,4 @@ const styles = StyleSheet.create({
     marginTop: THEME.spacing.lg,
     marginHorizontal: -THEME.spacing.lg,
   },
-});
+}));

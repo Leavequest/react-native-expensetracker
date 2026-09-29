@@ -1,34 +1,38 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { Header } from '../components/common';
-import { THEME } from '../constants';
 import { CurrencySection } from './settings/CurrencySection';
 import { HouseholdSection } from './settings/HouseholdSection';
 import { BudgetSection } from './settings/BudgetSection';
 import { AppDataSection } from './settings/AppDataSection';
+import { makeStyles } from '../context';
 
-export const SettingsScreen: React.FC = () => (
-  <View style={styles.container}>
-    <Header title="Settings" subtitle="Currency, household & preferences" />
+export const SettingsScreen: React.FC = () => {
+  const styles = useStyles();
 
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.scrollContent}
-    >
-      <CurrencySection />
-      <HouseholdSection />
-      <BudgetSection />
-      <AppDataSection />
-    </ScrollView>
-  </View>
-);
+  return (
+    <View style={styles.container}>
+      <Header title="Settings" subtitle="Currency, household & preferences" />
 
-const styles = StyleSheet.create({
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <CurrencySection />
+        <HouseholdSection />
+        <BudgetSection />
+        <AppDataSection />
+      </ScrollView>
+    </View>
+  );
+};
+
+const useStyles = makeStyles(colors => ({
   container: {
     flex: 1,
-    backgroundColor: THEME.colors.background,
+    backgroundColor: colors.background,
   },
   scrollContent: {
     paddingBottom: 40,
   },
-});
+}));

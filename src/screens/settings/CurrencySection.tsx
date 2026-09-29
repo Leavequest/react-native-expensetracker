@@ -1,13 +1,14 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { CURRENCIES, THEME } from '../../constants';
-import { useUser } from '../../context';
+import { useUser, makeStyles } from '../../context';
 import { CurrencyCode } from '../../types';
 import { SettingsSection } from './SettingsSection';
 
 const CURRENCY_OPTIONS = Object.keys(CURRENCIES) as CurrencyCode[];
 
 export const CurrencySection: React.FC = () => {
+  const styles = useStyles();
   const { currency, setCurrency } = useUser();
 
   return (
@@ -50,69 +51,69 @@ export const CurrencySection: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   row: {
     flexDirection: 'row',
     gap: 10,
   },
   option: {
     flex: 1,
-    backgroundColor: THEME.colors.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
     borderRadius: THEME.borderRadius.md,
     borderWidth: 1.5,
-    borderColor: THEME.colors.surfaceBorder,
+    borderColor: colors.surfaceBorder,
     padding: THEME.spacing.md,
     alignItems: 'center',
   },
   optionActive: {
-    backgroundColor: THEME.colors.primaryLight,
-    borderColor: THEME.colors.primary,
+    backgroundColor: colors.primaryLight,
+    borderColor: colors.primary,
   },
   symbolCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: THEME.colors.surfaceBorder,
+    backgroundColor: colors.surfaceBorder,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 6,
   },
   symbolCircleActive: {
-    backgroundColor: THEME.colors.primary,
+    backgroundColor: colors.primary,
   },
   symbolText: {
     fontSize: 18,
     fontWeight: '800',
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
   },
   symbolTextActive: {
-    color: THEME.colors.textInverse,
+    color: colors.textInverse,
   },
   codeText: {
     fontSize: 14,
     fontWeight: '700',
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
   },
   codeTextActive: {
-    color: THEME.colors.primaryDark,
+    color: colors.primaryDark,
   },
   nameText: {
     ...THEME.typography.caption,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
     fontSize: 10,
     marginTop: 2,
     textAlign: 'center',
   },
   activeBadge: {
     marginTop: 6,
-    backgroundColor: THEME.colors.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: THEME.borderRadius.full,
   },
   activeBadgeText: {
-    color: THEME.colors.textInverse,
+    color: colors.textInverse,
     fontSize: 9,
     fontWeight: '700',
   },
-});
+}));

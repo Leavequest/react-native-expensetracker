@@ -2,13 +2,13 @@ import React, { ReactNode } from 'react';
 import {
   TouchableOpacity,
   Text,
-  StyleSheet,
   ViewStyle,
   TextStyle,
   ActivityIndicator,
   View,
 } from 'react-native';
 import { THEME } from '../../constants';
+import { makeStyles, useTheme } from '../../context';
 
 interface ButtonProps {
   title: string;
@@ -33,6 +33,8 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
 }) => {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const getContainerStyle = () => {
     switch (variant) {
       case 'secondary':
@@ -93,7 +95,7 @@ export const Button: React.FC<ButtonProps> = ({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === 'primary' || variant === 'danger' ? '#FFFFFF' : THEME.colors.primary}
+          color={variant === 'primary' || variant === 'danger' ? '#FFFFFF' : colors.primary}
         />
       ) : (
         <View style={styles.contentRow}>
@@ -114,7 +116,7 @@ export const Button: React.FC<ButtonProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   baseContainer: {
     borderRadius: THEME.borderRadius.md,
     alignItems: 'center',
@@ -141,18 +143,18 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   primaryContainer: {
-    backgroundColor: THEME.colors.primary,
+    backgroundColor: colors.primary,
   },
   secondaryContainer: {
-    backgroundColor: THEME.colors.primaryLight,
+    backgroundColor: colors.primaryLight,
   },
   outlineContainer: {
     backgroundColor: 'transparent',
     borderWidth: 1.5,
-    borderColor: THEME.colors.primary,
+    borderColor: colors.primary,
   },
   dangerContainer: {
-    backgroundColor: THEME.colors.danger,
+    backgroundColor: colors.danger,
   },
   ghostContainer: {
     backgroundColor: 'transparent',
@@ -168,18 +170,18 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   secondaryText: {
-    color: THEME.colors.primaryDark,
+    color: colors.primaryDark,
   },
   outlineText: {
-    color: THEME.colors.primary,
+    color: colors.primary,
   },
   dangerText: {
     color: '#FFFFFF',
   },
   ghostText: {
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
   },
   disabledText: {
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
   },
-});
+}));

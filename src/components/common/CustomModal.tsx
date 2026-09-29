@@ -1,5 +1,5 @@
 import React, { ReactNode, useCallback, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { View, Text, TouchableOpacity, useWindowDimensions } from 'react-native';
 import {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { THEME } from '../../constants';
 import { Icon } from './Icon';
 import { InsideSheetContext } from './sheetContext';
+import { makeStyles, useTheme } from '../../context';
 
 interface CustomModalProps {
   visible: boolean;
@@ -43,6 +44,8 @@ export const CustomModal: React.FC<CustomModalProps> = ({
   children,
   onDismissed,
 }) => {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const sheetRef = useRef<BottomSheetModal>(null);
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -101,7 +104,7 @@ export const CustomModal: React.FC<CustomModalProps> = ({
             accessibilityRole="button"
             accessibilityLabel="Close"
           >
-            <Icon name="close" size={16} color={THEME.colors.textSecondary} strokeWidth={2.5} />
+            <Icon name="close" size={16} color={colors.textSecondary} strokeWidth={2.5} />
           </TouchableOpacity>
         </View>
 
@@ -111,14 +114,14 @@ export const CustomModal: React.FC<CustomModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   background: {
-    backgroundColor: THEME.colors.surface,
+    backgroundColor: colors.surface,
     borderTopLeftRadius: THEME.borderRadius.xl,
     borderTopRightRadius: THEME.borderRadius.xl,
   },
   handleIndicator: {
-    backgroundColor: THEME.colors.surfaceBorder,
+    backgroundColor: colors.surfaceBorder,
     width: 40,
   },
   content: {
@@ -130,7 +133,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingBottom: THEME.spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: THEME.colors.surfaceBorder,
+    borderBottomColor: colors.surfaceBorder,
     marginBottom: THEME.spacing.lg,
   },
   headerText: {
@@ -138,19 +141,19 @@ const styles = StyleSheet.create({
   },
   title: {
     ...THEME.typography.titleMedium,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
   },
   subtitle: {
     ...THEME.typography.caption,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
     marginTop: 2,
   },
   closeButton: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: THEME.colors.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+}));

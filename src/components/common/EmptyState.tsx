@@ -1,7 +1,8 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { THEME } from '../../constants';
 import { Icon, IconName } from './Icon';
+import { makeStyles, useTheme } from '../../context';
 
 interface EmptyStateProps {
   icon: IconName;
@@ -10,17 +11,22 @@ interface EmptyStateProps {
 }
 
 /** Centered placeholder shown when a list has nothing to display. */
-export const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, subtitle }) => (
-  <View style={styles.container}>
-    <View style={styles.iconCircle}>
-      <Icon name={icon} size={32} color={THEME.colors.primary} />
-    </View>
-    <Text style={styles.title}>{title}</Text>
-    {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
-  </View>
-);
+export const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, subtitle }) => {
+  const { colors } = useTheme();
+  const styles = useStyles();
 
-const styles = StyleSheet.create({
+  return (
+    <View style={styles.container}>
+      <View style={styles.iconCircle}>
+        <Icon name={icon} size={32} color={colors.primary} />
+      </View>
+      <Text style={styles.title}>{title}</Text>
+      {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+    </View>
+  );
+};
+
+const useStyles = makeStyles(colors => ({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -31,19 +37,19 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: THEME.colors.primaryLight,
+    backgroundColor: colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: THEME.spacing.md,
   },
   title: {
     ...THEME.typography.titleSmall,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
     marginBottom: 4,
   },
   subtitle: {
     ...THEME.typography.body,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
     textAlign: 'center',
   },
-});
+}));

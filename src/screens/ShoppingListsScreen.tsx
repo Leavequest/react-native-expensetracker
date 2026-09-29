@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   FlatList,
   TouchableOpacity,
   Alert,
@@ -19,13 +18,15 @@ import {
 } from '../components/common';
 import { ShoppingListCard, AddListModal } from '../components/shopping';
 import { THEME } from '../constants';
-import { useShoppingList } from '../context';
+import { useShoppingList, makeStyles, useTheme } from '../context';
 import { ShoppingList } from '../types';
 import { ShoppingStackScreenProps } from '../navigation/types';
 
 export const ShoppingListsScreen: React.FC<ShoppingStackScreenProps<'ShoppingLists'>> = ({
   navigation,
 }) => {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { lists, deleteList, joinListByCode } = useShoppingList();
 
   const [addListVisible, setAddListVisible] = useState(false);
@@ -83,7 +84,7 @@ export const ShoppingListsScreen: React.FC<ShoppingStackScreenProps<'ShoppingLis
                 onPress={() => setAddListVisible(true)}
                 style={styles.actionBtnPrimary}
               >
-                <Icon name="plus" size={18} color={THEME.colors.textInverse} strokeWidth={2.5} />
+                <Icon name="plus" size={18} color={colors.textInverse} strokeWidth={2.5} />
                 <Text style={styles.actionBtnPrimaryText}>New List</Text>
               </TouchableOpacity>
 
@@ -95,7 +96,7 @@ export const ShoppingListsScreen: React.FC<ShoppingStackScreenProps<'ShoppingLis
                 }}
                 style={styles.actionBtnSecondary}
               >
-                <Icon name="link" size={16} color={THEME.colors.textPrimary} />
+                <Icon name="link" size={16} color={colors.textPrimary} />
                 <Text style={styles.actionBtnSecondaryText}>Join via Code</Text>
               </TouchableOpacity>
             </View>
@@ -165,10 +166,10 @@ export const ShoppingListsScreen: React.FC<ShoppingStackScreenProps<'ShoppingLis
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   container: {
     flex: 1,
-    backgroundColor: THEME.colors.background,
+    backgroundColor: colors.background,
   },
   listContent: {
     paddingBottom: 40,
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: THEME.colors.primary,
+    backgroundColor: colors.primary,
     paddingVertical: 12,
     borderRadius: THEME.borderRadius.md,
     gap: 6,
@@ -203,21 +204,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: THEME.colors.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1.5,
-    borderColor: THEME.colors.surfaceBorder,
+    borderColor: colors.surfaceBorder,
     paddingVertical: 12,
     borderRadius: THEME.borderRadius.md,
     gap: 6,
   },
   actionBtnSecondaryText: {
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
     fontWeight: '600',
     fontSize: 14,
   },
   sectionTitle: {
     ...THEME.typography.titleSmall,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
     marginHorizontal: THEME.spacing.lg,
     marginBottom: THEME.spacing.sm,
   },
@@ -239,4 +240,4 @@ const styles = StyleSheet.create({
   joinSubmitBtn: {
     width: '100%',
   },
-});
+}));

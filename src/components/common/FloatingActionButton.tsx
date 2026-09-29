@@ -1,7 +1,8 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { THEME } from '../../constants';
 import { Icon, IconName } from './Icon';
+import { makeStyles, useTheme } from '../../context';
 
 interface FloatingActionButtonProps {
   onPress: () => void;
@@ -14,19 +15,24 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   onPress,
   accessibilityLabel,
   icon = 'plus',
-}) => (
-  <TouchableOpacity
-    activeOpacity={0.8}
-    onPress={onPress}
-    accessibilityRole="button"
-    accessibilityLabel={accessibilityLabel}
-    style={styles.button}
-  >
-    <Icon name={icon} size={26} color={THEME.colors.textInverse} strokeWidth={2.5} />
-  </TouchableOpacity>
-);
+}) => {
+  const { colors } = useTheme();
+  const styles = useStyles();
 
-const styles = StyleSheet.create({
+  return (
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      style={styles.button}
+    >
+      <Icon name={icon} size={26} color={colors.textInverse} strokeWidth={2.5} />
+    </TouchableOpacity>
+  );
+};
+
+const useStyles = makeStyles(colors => ({
   button: {
     position: 'absolute',
     bottom: 24,
@@ -34,9 +40,9 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: THEME.colors.primary,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     ...THEME.shadows.floating,
   },
-});
+}));

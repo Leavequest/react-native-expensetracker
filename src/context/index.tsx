@@ -2,11 +2,13 @@ import React, { ReactNode, useEffect, useState } from 'react';
 import { UserProvider } from './UserContext';
 import { ExpenseProvider } from './ExpenseContext';
 import { ShoppingListProvider } from './ShoppingListContext';
+import { ThemeProvider } from './ThemeContext';
 import { loadAppState, PersistedAppState } from '../storage/persistence';
 
 export * from './UserContext';
 export * from './ExpenseContext';
 export * from './ShoppingListContext';
+export * from './ThemeContext';
 export * from './useRemoveHouseholdMember';
 export * from './usePermission';
 
@@ -33,12 +35,14 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children, fallback =
   if (!savedState) return <>{fallback}</>;
 
   return (
-    <UserProvider initialState={savedState.user}>
-      <ExpenseProvider initialState={savedState.expenses}>
-        <ShoppingListProvider initialState={savedState.shopping}>
-          {children}
-        </ShoppingListProvider>
-      </ExpenseProvider>
-    </UserProvider>
+    <ThemeProvider initialState={savedState.theme}>
+      <UserProvider initialState={savedState.user}>
+        <ExpenseProvider initialState={savedState.expenses}>
+          <ShoppingListProvider initialState={savedState.shopping}>
+            {children}
+          </ShoppingListProvider>
+        </ExpenseProvider>
+      </UserProvider>
+    </ThemeProvider>
   );
 };

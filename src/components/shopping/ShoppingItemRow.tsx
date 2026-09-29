@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import Animated, {
   interpolateColor,
   useAnimatedStyle,
@@ -11,7 +11,7 @@ import Animated, {
 import HapticFeedback from 'react-native-haptic-feedback';
 import { ShoppingItem } from '../../types';
 import { getAisleInfo, THEME } from '../../constants';
-import { useUser } from '../../context';
+import { useUser, makeStyles, useTheme } from '../../context';
 import { Avatar, Badge, Icon, deleteAccessibilityProps } from '../common';
 
 interface ShoppingItemRowProps {
@@ -22,6 +22,8 @@ interface ShoppingItemRowProps {
 }
 
 const CheckBox: React.FC<{ checked: boolean }> = ({ checked }) => {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const progress = useSharedValue(checked ? 1 : 0);
   const scale = useSharedValue(1);
 
@@ -36,12 +38,12 @@ const CheckBox: React.FC<{ checked: boolean }> = ({ checked }) => {
     backgroundColor: interpolateColor(
       progress.value,
       [0, 1],
-      [THEME.colors.surface, THEME.colors.primary]
+      [colors.surface, colors.primary]
     ),
     borderColor: interpolateColor(
       progress.value,
       [0, 1],
-      [THEME.colors.surfaceBorder, THEME.colors.primary]
+      [colors.surfaceBorder, colors.primary]
     ),
     transform: [{ scale: scale.value }],
   }));
@@ -51,7 +53,7 @@ const CheckBox: React.FC<{ checked: boolean }> = ({ checked }) => {
   return (
     <Animated.View style={[styles.checkbox, boxStyle]}>
       <Animated.View style={checkStyle}>
-        <Icon name="check" size={16} color={THEME.colors.textInverse} strokeWidth={3} />
+        <Icon name="check" size={16} color={colors.textInverse} strokeWidth={3} />
       </Animated.View>
     </Animated.View>
   );
@@ -62,6 +64,8 @@ export const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
   onToggle,
   onDelete,
 }) => {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { formatAmount, householdUsers } = useUser();
 
   const aisleMeta = getAisleInfo(item.aisle);
@@ -77,7 +81,7 @@ export const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
   return (
     <Pressable
       onPress={handleToggle}
-      android_ripple={{ color: THEME.colors.surfaceSubtle }}
+      android_ripple={{ color: colors.surfaceSubtle }}
       style={({ pressed }) => [
         styles.container,
         item.isCompleted && styles.completedContainer,
@@ -126,19 +130,19 @@ export const ShoppingItemRow: React.FC<ShoppingItemRowProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     minHeight: 64,
     paddingVertical: THEME.spacing.md,
     paddingHorizontal: THEME.spacing.lg,
-    backgroundColor: THEME.colors.surface,
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: THEME.colors.surfaceBorder,
+    borderBottomColor: colors.surfaceBorder,
   },
   completedContainer: {
-    backgroundColor: THEME.colors.background,
+    backgroundColor: colors.background,
   },
   pressed: {
     opacity: 0.85,
@@ -164,15 +168,15 @@ const styles = StyleSheet.create({
   },
   name: {
     ...THEME.typography.bodyBold,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
     flexShrink: 1,
   },
   nameCompleted: {
     textDecorationLine: 'line-through',
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
   },
   quantityBadge: {
-    backgroundColor: THEME.colors.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: THEME.borderRadius.sm,
@@ -180,7 +184,7 @@ const styles = StyleSheet.create({
   quantityText: {
     fontSize: 11,
     fontWeight: '600',
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
   },
   metaRow: {
     flexDirection: 'row',
@@ -194,16 +198,16 @@ const styles = StyleSheet.create({
   },
   assigneeName: {
     ...THEME.typography.caption,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
     fontSize: 10,
   },
   price: {
     ...THEME.typography.captionBold,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
     marginLeft: THEME.spacing.sm,
   },
   priceCompleted: {
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
     textDecorationLine: 'line-through',
   },
-});
+}));

@@ -1,8 +1,8 @@
 import React from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, Text, View } from 'react-native';
 import { Button } from '../../components/common';
 import { DEFAULT_CURRENCY, THEME } from '../../constants';
-import { useExpense, useShoppingList, useUser } from '../../context';
+import { useExpense, useShoppingList, useUser, makeStyles } from '../../context';
 import { SettingsSection } from './SettingsSection';
 
 const APP_INFO: Array<[label: string, value: string]> = [
@@ -13,6 +13,7 @@ const APP_INFO: Array<[label: string, value: string]> = [
 ];
 
 export const AppDataSection: React.FC = () => {
+  const styles = useStyles();
   const { householdUsers, setCurrency, setActiveUser } = useUser();
   const { resetExpensesToDefault } = useExpense();
   const { resetShoppingListsToDefault } = useShoppingList();
@@ -57,27 +58,27 @@ export const AppDataSection: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 6,
     borderBottomWidth: 1,
-    borderBottomColor: THEME.colors.surfaceBorder,
+    borderBottomColor: colors.surfaceBorder,
   },
   infoLabel: {
     ...THEME.typography.caption,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
   },
   infoValue: {
     ...THEME.typography.captionBold,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
   },
   resetBtn: {
     marginTop: THEME.spacing.lg,
-    borderColor: THEME.colors.danger,
+    borderColor: colors.danger,
   },
   resetBtnText: {
-    color: THEME.colors.danger,
+    color: colors.danger,
   },
-});
+}));

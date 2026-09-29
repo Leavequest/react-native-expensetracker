@@ -1,8 +1,8 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { Avatar, Button, CustomModal, Icon } from '../common';
 import { THEME } from '../../constants';
-import { usePermission, useRemoveHouseholdMember, useUser } from '../../context';
+import { usePermission, useRemoveHouseholdMember, useUser, makeStyles, useTheme } from '../../context';
 import { UserProfile } from '../../types';
 
 interface DeleteMemberModalProps {
@@ -12,6 +12,8 @@ interface DeleteMemberModalProps {
 }
 
 export const DeleteMemberModal: React.FC<DeleteMemberModalProps> = ({ member, onClose }) => {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { activeUser, householdUsers } = useUser();
   const removeMember = useRemoveHouseholdMember();
 
@@ -36,7 +38,7 @@ export const DeleteMemberModal: React.FC<DeleteMemberModalProps> = ({ member, on
           {isLastMember ? (
             <View>
               <View style={styles.warningBox}>
-                <Icon name="warning" size={20} color={THEME.colors.danger} />
+                <Icon name="warning" size={20} color={colors.danger} />
                 <View style={styles.warningTextWrapper}>
                   <Text style={styles.warningTitle}>Cannot Delete Member</Text>
                   <Text style={styles.warningText}>
@@ -74,7 +76,7 @@ export const DeleteMemberModal: React.FC<DeleteMemberModalProps> = ({ member, on
 
               {member.id === activeUser.id ? (
                 <View style={styles.noticeBox}>
-                  <Icon name="info" size={16} color="#92400E" />
+                  <Icon name="info" size={16} color={colors.warningDark} />
                   <Text style={styles.noticeText}>
                     This member is currently active. Deleting it will automatically switch
                     the active profile to another household member.
@@ -106,18 +108,18 @@ export const DeleteMemberModal: React.FC<DeleteMemberModalProps> = ({ member, on
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   content: {
     paddingBottom: THEME.spacing.md,
   },
   memberCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: THEME.colors.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
     padding: 12,
     borderRadius: THEME.borderRadius.md,
     borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
+    borderColor: colors.surfaceBorder,
     marginBottom: 14,
   },
   avatar: {
@@ -129,25 +131,25 @@ const styles = StyleSheet.create({
   memberName: {
     ...THEME.typography.bodyBold,
     fontSize: 15,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
   },
   memberEmail: {
     ...THEME.typography.caption,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
   },
   promptText: {
     ...THEME.typography.body,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
     marginBottom: 12,
   },
   promptBold: {
     fontWeight: '700',
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
   },
   noticeBox: {
     flexDirection: 'row',
     gap: 8,
-    backgroundColor: THEME.colors.warningLight,
+    backgroundColor: colors.warningLight,
     padding: 10,
     borderRadius: THEME.borderRadius.sm,
     marginBottom: 12,
@@ -155,13 +157,13 @@ const styles = StyleSheet.create({
   noticeText: {
     flex: 1,
     fontSize: 12,
-    color: '#92400E',
+    color: colors.warningDark,
     lineHeight: 16,
     fontWeight: '500',
   },
   warningBox: {
     flexDirection: 'row',
-    backgroundColor: THEME.colors.dangerLight,
+    backgroundColor: colors.dangerLight,
     padding: 12,
     borderRadius: THEME.borderRadius.md,
     marginBottom: 16,
@@ -173,12 +175,12 @@ const styles = StyleSheet.create({
   },
   warningTitle: {
     ...THEME.typography.bodyBold,
-    color: THEME.colors.danger,
+    color: colors.danger,
     marginBottom: 2,
   },
   warningText: {
     ...THEME.typography.caption,
-    color: THEME.colors.danger,
+    color: colors.danger,
     lineHeight: 16,
   },
   actions: {
@@ -195,4 +197,4 @@ const styles = StyleSheet.create({
   flexBtn: {
     flex: 1,
   },
-});
+}));

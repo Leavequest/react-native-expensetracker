@@ -1,21 +1,27 @@
 import React, { ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import HapticFeedback from 'react-native-haptic-feedback';
 import { THEME } from '../../constants';
 import { Icon } from './Icon';
+import { makeStyles, useTheme } from '../../context';
 
 interface SwipeToDeleteProps {
   onDelete: () => void;
   children: ReactNode;
 }
 
-const DeleteAction: React.FC = () => (
-  <View style={styles.action}>
-    <Icon name="trash" size={20} color={THEME.colors.textInverse} />
-    <Text style={styles.actionText}>Delete</Text>
-  </View>
-);
+const DeleteAction: React.FC = () => {
+  const { colors } = useTheme();
+  const styles = useStyles();
+
+  return (
+    <View style={styles.action}>
+      <Icon name="trash" size={20} color={colors.textInverse} />
+      <Text style={styles.actionText}>Delete</Text>
+    </View>
+  );
+};
 
 const renderRightActions = () => <DeleteAction />;
 
@@ -54,16 +60,16 @@ export function deleteAccessibilityProps(onDelete: () => void) {
   };
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   action: {
     width: 96,
-    backgroundColor: THEME.colors.danger,
+    backgroundColor: colors.danger,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 2,
   },
   actionText: {
     ...THEME.typography.captionBold,
-    color: THEME.colors.textInverse,
+    color: colors.textInverse,
   },
-});
+}));

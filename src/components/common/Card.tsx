@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
-import { View, StyleSheet, ViewStyle, TouchableOpacity } from 'react-native';
+import { View, ViewStyle, TouchableOpacity } from 'react-native';
 import { THEME } from '../../constants';
+import { makeStyles } from '../../context';
 
 interface CardProps {
   children: ReactNode;
@@ -15,6 +16,7 @@ export const Card: React.FC<CardProps> = ({
   onPress,
   variant = 'elevated',
 }) => {
+  const styles = useStyles();
   const cardStyles = [
     styles.base,
     variant === 'elevated' && styles.elevated,
@@ -38,22 +40,22 @@ export const Card: React.FC<CardProps> = ({
   return <View style={cardStyles}>{children}</View>;
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   base: {
-    backgroundColor: THEME.colors.surface,
+    backgroundColor: colors.surface,
     borderRadius: THEME.borderRadius.lg,
     padding: THEME.spacing.lg,
   },
   elevated: {
     ...THEME.shadows.card,
     borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
   outlined: {
     borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
+    borderColor: colors.surfaceBorder,
   },
   flat: {
-    backgroundColor: THEME.colors.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
   },
-});
+}));

@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Expense } from '../../types';
 import { getCategoryInfo, THEME } from '../../constants';
-import { useUser } from '../../context';
+import { useUser, makeStyles } from '../../context';
 import { CategoryIcon, deleteAccessibilityProps } from '../common';
 
 interface ExpenseItemRowProps {
@@ -17,6 +17,7 @@ export const ExpenseItemRow: React.FC<ExpenseItemRowProps> = ({
   onDelete,
   onPress,
 }) => {
+  const styles = useStyles();
   const { formatAmount } = useUser();
   const categoryMeta = getCategoryInfo(expense.category);
 
@@ -52,13 +53,13 @@ export const ExpenseItemRow: React.FC<ExpenseItemRowProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: THEME.spacing.md,
     paddingHorizontal: THEME.spacing.lg,
-    backgroundColor: THEME.colors.surface,
+    backgroundColor: colors.surface,
   },
   categoryIcon: {
     marginRight: THEME.spacing.md,
@@ -69,7 +70,7 @@ const styles = StyleSheet.create({
   },
   title: {
     ...THEME.typography.titleSmall,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
     marginBottom: 2,
   },
   categoryText: {
@@ -81,13 +82,13 @@ const styles = StyleSheet.create({
   },
   amountText: {
     ...THEME.typography.titleSmall,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
     fontWeight: '700',
     marginBottom: 2,
   },
   paymentMethodText: {
     ...THEME.typography.caption,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
     fontSize: 11,
   },
-});
+}));

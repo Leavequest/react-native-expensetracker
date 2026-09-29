@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import {
   Avatar,
   CustomModal,
@@ -9,7 +9,7 @@ import {
   showSuccessToast,
 } from '../common';
 import { THEME } from '../../constants';
-import { useUser } from '../../context';
+import { useUser, makeStyles, useTheme } from '../../context';
 import { UserProfile } from '../../types';
 import { isPending } from '../../utils';
 import { MemberTags } from './MemberTags';
@@ -28,6 +28,8 @@ export const AccountSheet: React.FC<AccountSheetProps> = ({
   onEditProfile,
   onManageHousehold,
 }) => {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { activeUser, householdUsers, setActiveUser } = useUser();
   // Work to run after the close animation, so nothing navigates under an open sheet
   const afterDismiss = useRef<(() => void) | null>(null);
@@ -80,12 +82,12 @@ export const AccountSheet: React.FC<AccountSheetProps> = ({
       <SettingsGroup style={styles.group}>
         <SettingsRow
           label="Edit profile"
-          left={<Icon name="user" size={18} color={THEME.colors.textSecondary} />}
+          left={<Icon name="user" size={18} color={colors.textSecondary} />}
           onPress={() => onEditProfile(activeUser)}
         />
         <SettingsRow
           label="Manage household"
-          left={<Icon name="users" size={18} color={THEME.colors.textSecondary} />}
+          left={<Icon name="users" size={18} color={colors.textSecondary} />}
           onPress={handleManageHousehold}
         />
       </SettingsGroup>
@@ -93,21 +95,21 @@ export const AccountSheet: React.FC<AccountSheetProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   profile: {
     alignItems: 'center',
     gap: THEME.spacing.xs,
   },
   name: {
     ...THEME.typography.titleSmall,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
     marginTop: THEME.spacing.sm,
   },
   email: {
     ...THEME.typography.caption,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
   },
   group: {
     marginHorizontal: 0,
   },
-});
+}));

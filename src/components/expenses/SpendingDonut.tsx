@@ -1,8 +1,8 @@
 import React, { useCallback } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import { getCategoryInfo, THEME } from '../../constants';
-import { CategorySpending, useUser } from '../../context';
+import { CategorySpending, useUser, makeStyles, useTheme } from '../../context';
 
 interface SpendingDonutProps {
   categories: CategorySpending[];
@@ -11,6 +11,8 @@ interface SpendingDonutProps {
 
 /** Donut of this month's spending per category, with the total in the middle. */
 export const SpendingDonut: React.FC<SpendingDonutProps> = ({ categories, total }) => {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { formatAmount } = useUser();
 
   const data = categories.map(c => ({
@@ -27,7 +29,7 @@ export const SpendingDonut: React.FC<SpendingDonutProps> = ({ categories, total 
         </Text>
       </View>
     ),
-    [formatAmount, total]
+    [formatAmount, total, styles]
   );
 
   const summary = categories
@@ -46,16 +48,16 @@ export const SpendingDonut: React.FC<SpendingDonutProps> = ({ categories, total 
         donut
         radius={96}
         innerRadius={66}
-        innerCircleColor={THEME.colors.surface}
+        innerCircleColor={colors.surface}
         strokeWidth={2}
-        strokeColor={THEME.colors.surface}
+        strokeColor={colors.surface}
         centerLabelComponent={renderCenterLabel}
       />
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   container: {
     alignItems: 'center',
     paddingVertical: THEME.spacing.md,
@@ -66,11 +68,11 @@ const styles = StyleSheet.create({
   },
   centerLabel: {
     ...THEME.typography.caption,
-    color: THEME.colors.textMuted,
+    color: colors.textMuted,
   },
   centerValue: {
     fontSize: 18,
     fontWeight: '800',
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
   },
-});
+}));

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import {
   Avatar,
   Button,
@@ -17,7 +17,7 @@ import {
   THEME,
 } from '../../constants';
 import { GroceryAisle } from '../../types';
-import { useShoppingList, useUser } from '../../context';
+import { useShoppingList, useUser, makeStyles } from '../../context';
 import { getCurrencySymbol, parseCurrencyInput } from '../../utils';
 
 interface AddItemModalProps {
@@ -31,6 +31,7 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
   onClose,
   listId,
 }) => {
+  const styles = useStyles();
   const { addItem } = useShoppingList();
   const { activeUser, householdUsers, currency } = useUser();
 
@@ -198,23 +199,23 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(colors => ({
   presetsRow: {
     gap: 6,
     marginBottom: 8,
   },
   presetChip: {
-    backgroundColor: THEME.colors.primaryLight,
+    backgroundColor: colors.primaryLight,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: THEME.borderRadius.full,
     borderWidth: 1,
-    borderColor: '#A7F3D0',
+    borderColor: colors.primaryBorder,
   },
   presetText: {
     fontSize: 12,
     fontWeight: '600',
-    color: THEME.colors.primaryDark,
+    color: colors.primaryDark,
   },
   rowInputs: {
     flexDirection: 'row',
@@ -232,25 +233,25 @@ const styles = StyleSheet.create({
   assigneeChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: THEME.colors.surfaceSubtle,
+    backgroundColor: colors.surfaceSubtle,
     borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
+    borderColor: colors.surfaceBorder,
     borderRadius: THEME.borderRadius.full,
     paddingHorizontal: 10,
     paddingVertical: 5,
     gap: 6,
   },
   assigneeChipSelected: {
-    backgroundColor: THEME.colors.primaryLight,
-    borderColor: THEME.colors.primary,
+    backgroundColor: colors.primaryLight,
+    borderColor: colors.primary,
   },
   assigneeNameText: {
     fontSize: 12,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
     fontWeight: '500',
   },
   assigneeNameTextSelected: {
-    color: THEME.colors.primaryDark,
+    color: colors.primaryDark,
     fontWeight: '700',
   },
   actionsContainer: {
@@ -260,4 +261,4 @@ const styles = StyleSheet.create({
   submitButton: {
     width: '100%',
   },
-});
+}));

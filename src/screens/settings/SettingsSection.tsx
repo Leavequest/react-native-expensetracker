@@ -1,7 +1,8 @@
 import React, { ReactNode } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { Text } from 'react-native';
 import { Card } from '../../components/common';
 import { THEME } from '../../constants';
+import { makeStyles } from '../../context';
 
 interface SettingsSectionProps {
   title: string;
@@ -14,32 +15,36 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
   title,
   description,
   children,
-}) => (
-  <>
-    <Text style={styles.title}>{title}</Text>
-    <Card style={styles.card}>
-      {description ? <Text style={styles.description}>{description}</Text> : null}
-      {children}
-    </Card>
-  </>
-);
+}) => {
+  const styles = useStyles();
 
-const styles = StyleSheet.create({
+  return (
+    <>
+      <Text style={styles.title}>{title}</Text>
+      <Card style={styles.card}>
+        {description ? <Text style={styles.description}>{description}</Text> : null}
+        {children}
+      </Card>
+    </>
+  );
+};
+
+const useStyles = makeStyles(colors => ({
   title: {
     ...THEME.typography.titleSmall,
-    color: THEME.colors.textPrimary,
+    color: colors.textPrimary,
     marginHorizontal: THEME.spacing.lg,
     marginTop: THEME.spacing.lg,
     marginBottom: THEME.spacing.xs,
   },
   card: {
     marginHorizontal: THEME.spacing.lg,
-    backgroundColor: THEME.colors.surface,
+    backgroundColor: colors.surface,
   },
   description: {
     ...THEME.typography.caption,
-    color: THEME.colors.textSecondary,
+    color: colors.textSecondary,
     marginBottom: THEME.spacing.md,
     lineHeight: 18,
   },
-});
+}));
