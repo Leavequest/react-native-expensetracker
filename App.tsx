@@ -15,6 +15,7 @@ import {
   createNavigationContainerRef,
 } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { Toaster } from 'sonner-native';
 import { AppProviders, makeStyles, useTheme } from './src/context';
@@ -78,11 +79,13 @@ function App(): React.JSX.Element {
   const styles = useStyles();
   return (
     <GestureHandlerRootView style={styles.root}>
-      <SafeAreaProvider>
-        <AppProviders fallback={<LoadingScreen />}>
-          <ThemedApp />
-        </AppProviders>
-      </SafeAreaProvider>
+      <KeyboardProvider>
+        <SafeAreaProvider>
+          <AppProviders fallback={<LoadingScreen />}>
+            <ThemedApp />
+          </AppProviders>
+        </SafeAreaProvider>
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 }

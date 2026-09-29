@@ -126,7 +126,8 @@ export const ExpensesScreen: React.FC = () => {
         }
         renderSectionHeader={({ section }) => (
           <View style={styles.dayHeader}>
-            <Text style={styles.dayTitle}>{section.title}</Text>
+            {/* Uppercased here: Android cuts off text uppercased via textTransform + letterSpacing */}
+            <Text style={styles.dayTitle}>{section.title.toUpperCase()}</Text>
             <Text style={styles.dayTotal}>{formatTotal(section.total)}</Text>
           </View>
         )}
@@ -202,7 +203,6 @@ const useStyles = makeStyles(colors => ({
   dayTitle: {
     ...THEME.typography.captionBold,
     color: colors.textSecondary,
-    textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   dayTotal: {

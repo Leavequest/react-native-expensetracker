@@ -6,7 +6,7 @@ import { ExpenseProvider, useExpense } from '../src/context/ExpenseContext';
 import { Expense } from '../src/types';
 
 // Same in-memory instance the persistence module uses (see jest.setup.js)
-const storage = createAsyncStorage('finance-manager');
+const storage = createAsyncStorage('expense-tracker');
 
 const sampleExpense: Expense = {
   id: 'exp-1',

@@ -209,7 +209,7 @@ export const ShoppingListDetailScreen: React.FC<
                 <Animated.View key={aisle} style={styles.aisleGroup} layout={rowAnimation.layout}>
                   <View style={styles.aisleHeader}>
                     <Icon name={aisleMeta.icon} size={14} color={aisleMeta.color} />
-                    <Text style={styles.aisleTitle}>{aisle}</Text>
+                    <Text style={styles.aisleTitle}>{aisle.toUpperCase()}</Text>
                     <Text style={styles.aisleCount}>({items.length})</Text>
                   </View>
                   <View style={styles.itemsWrapper}>{items.map(renderRow)}</View>
@@ -227,7 +227,7 @@ export const ShoppingListDetailScreen: React.FC<
                   accessibilityState={{ expanded: cartExpanded }}
                 >
                   <Icon name="cart" size={14} color={colors.primary} />
-                  <Text style={[styles.aisleTitle, styles.cartTitle]}>In cart</Text>
+                  <Text style={[styles.aisleTitle, styles.cartTitle]}>IN CART</Text>
                   <Text style={styles.aisleCount}>({inCart.length})</Text>
                   <View style={[styles.chevron, cartExpanded && styles.chevronOpen]}>
                     <Icon name="chevron-down" size={16} color={colors.textMuted} />
@@ -361,7 +361,7 @@ const useStyles = makeStyles(colors => ({
   aisleTitle: {
     ...THEME.typography.captionBold,
     color: colors.textSecondary,
-    textTransform: 'uppercase',
+    // Uppercased in JS: Android cuts off text uppercased via textTransform + letterSpacing
     letterSpacing: 0.5,
   },
   aisleCount: {

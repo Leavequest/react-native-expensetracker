@@ -12,7 +12,7 @@ import {
 import { withMemberDefaults } from '../utils/members';
 import { defaultWalletId } from '../utils/wallets';
 
-const storage = createAsyncStorage('finance-manager');
+const storage = createAsyncStorage('expense-tracker');
 
 /**
  * Bump this when the shape of persisted data changes, and handle the

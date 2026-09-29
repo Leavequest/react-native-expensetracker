@@ -36,3 +36,8 @@ jest.mock('sonner-native', () => {
   });
   return { toast, Toaster: () => null };
 });
+
+// Keyboard handling is native; the library ships plain-View/ScrollView stand-ins for Jest
+jest.mock('react-native-keyboard-controller', () =>
+  require('react-native-keyboard-controller/jest'),
+);

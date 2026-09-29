@@ -1,4 +1,4 @@
-# FinanceManager
+# Expense Tracker
 
 A mobile application built with **React Native** (React 19.2.3, React Native 0.87.1, TypeScript) for **expense management** and **shared shopping lists**.
 

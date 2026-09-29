@@ -56,7 +56,7 @@ test('loads saved data and navigates between every screen', async () => {
   await typeInto(node => node.props.accessibilityLabel === 'Amount in EUR', '12,50');
   await typeInto(node => node.props.placeholder === 'e.g., Carrefour, Metro Pass, Dinner', 'Lunch');
   await press(findButtonWithText(root, 'Add Expense'));
-  expect(hasText(root, 'Today')).toBe(true);
+  expect(hasText(root, 'TODAY')).toBe(true);
   expect(hasText(root, 'Lunch')).toBe(true);
   // The expense came out of the default (Cash) wallet
   expect(hasText(root, '-€ 12.50')).toBe(true);
@@ -87,10 +87,10 @@ test('loads saved data and navigates between every screen', async () => {
   });
   await press(findButtonWithText(root, 'Add to Shopping List'));
   expect(hasText(root, 'Apples')).toBe(true);
-  expect(hasText(root, 'In cart')).toBe(false);
+  expect(hasText(root, 'IN CART')).toBe(false);
 
   await press(findPressable(root, node => node.props.accessibilityRole === 'checkbox'));
-  expect(hasText(root, 'In cart')).toBe(true);
+  expect(hasText(root, 'IN CART')).toBe(true);
   expect(hasText(root, 'Everything is in the cart.')).toBe(true);
 
   await press(findTab(root, 'Analytics'));

@@ -31,6 +31,7 @@ const renderRightActions = () => <DeleteAction />;
  * "delete" accessibility action (see `deleteAccessibilityProps`).
  */
 export const SwipeToDelete: React.FC<SwipeToDeleteProps> = ({ onDelete, children }) => {
+  const styles = useStyles();
   // Only right-side actions exist, so any fully-opened swipe means "delete"
   const handleOpen = () => {
     HapticFeedback.trigger('impactMedium');
@@ -44,6 +45,12 @@ export const SwipeToDelete: React.FC<SwipeToDeleteProps> = ({ onDelete, children
       rightThreshold={80}
       friction={1.5}
       overshootRight={false}
+      // Only a clear leftward swipe starts a delete, so a vertical scroll that drifts
+      // sideways stays a scroll; there are no left actions, so rightward drags never start one
+      dragOffsetFromRight={-30}
+      dragOffsetFromLeft={10000}
+      // Opaque, so a row's press feedback (e.g. lowered opacity) never reveals the red action
+      childrenContainerStyle={styles.row}
     >
       {children}
     </ReanimatedSwipeable>
@@ -61,6 +68,9 @@ export function deleteAccessibilityProps(onDelete: () => void) {
 }
 
 const useStyles = makeStyles(colors => ({
+  row: {
+    backgroundColor: colors.surface,
+  },
   action: {
     width: 96,
     backgroundColor: colors.danger,

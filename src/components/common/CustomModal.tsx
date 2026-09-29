@@ -6,6 +6,8 @@ import {
   BottomSheetModal,
   BottomSheetScrollView,
 } from '@gorhom/bottom-sheet';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import type { AnimatedScrollViewComponent } from 'react-native-keyboard-controller/lib/typescript/components/ScrollViewWithBottomPadding';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { THEME } from '../../constants';
 import { Icon } from './Icon';
@@ -78,13 +80,16 @@ export const CustomModal: React.FC<CustomModalProps> = ({
       maxDynamicContentSize={windowHeight * 0.9}
       topInset={insets.top}
       backdropComponent={renderBackdrop}
-      keyboardBehavior="interactive"
+      // The sheet grows to full height; KeyboardAwareScrollView then scrolls the focused field into view
+      keyboardBehavior="extend"
       keyboardBlurBehavior="restore"
       android_keyboardInputMode="adjustResize"
       backgroundStyle={styles.background}
       handleIndicatorStyle={styles.handleIndicator}
     >
-      <BottomSheetScrollView
+      <KeyboardAwareScrollView
+        ScrollViewComponent={BottomSheetScrollView as unknown as AnimatedScrollViewComponent}
+        bottomOffset={THEME.spacing.xl}
         contentContainerStyle={[
           styles.content,
           { paddingBottom: Math.max(insets.bottom, THEME.spacing.lg) + THEME.spacing.sm },
@@ -109,7 +114,7 @@ export const CustomModal: React.FC<CustomModalProps> = ({
         </View>
 
         <InsideSheetContext.Provider value={true}>{children}</InsideSheetContext.Provider>
-      </BottomSheetScrollView>
+      </KeyboardAwareScrollView>
     </BottomSheetModal>
   );
 };
